@@ -1,62 +1,81 @@
-import { useState } from "react";
-import { Scotty } from "./Scotty.tsx";
-import type { ScottyMood } from "./Scotty.tsx";
+import { Mark } from "./components/Mark.tsx";
+import { PracticeRound } from "./components/PracticeRound.tsx";
 
-const QUESTIONS = 20;
+const STEPS = [
+  {
+    title: "Bark picks something",
+    body: "Every day, a place, course, food, or tradition from around campus.",
+  },
+  {
+    title: "You ask, he answers",
+    body: "Yes, no, or sort of. Twenty questions, one bone each.",
+  },
+  {
+    title: "Guess it, share it",
+    body: "Fewer questions is better. Come back tomorrow for a new one.",
+  },
+] as const;
 
-const DEMO: readonly { readonly mood: ScottyMood; readonly reply: string }[] = [
-  { mood: "yes", reply: "Yes!" },
-  { mood: "no", reply: "No." },
-  { mood: "tilt", reply: "Sort of..." },
-];
-
-export function App() {
-  const [step, setStep] = useState(-1);
-  const current = step === -1 ? null : DEMO[step % DEMO.length];
-
+function Header() {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-xl flex-col items-center justify-center gap-8 px-4 py-12 text-center">
-      <header className="space-y-2">
-        <p className="text-sm font-semibold tracking-widest text-tartan uppercase">
-          A daily game from Bark
-        </p>
-        <h1 className="font-display text-5xl font-bold text-ink sm:text-6xl">Twenty Barks</h1>
-      </header>
+    <header className="hairline-b">
+      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-8">
+        <a href="https://scottylabs.org" className="flex items-center gap-2 font-medium">
+          <Mark className="h-6 w-7" />
+          ScottyLabs
+        </a>
+        <a href="#how" className="text-sm font-medium hover:underline">
+          How to play
+        </a>
+      </div>
+    </header>
+  );
+}
 
-      <button
-        type="button"
-        onClick={() => {
-          setStep((s) => s + 1);
-        }}
-        className="group rounded-3xl p-2 focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-tartan"
-        aria-label="Ask Scotty a practice question"
-      >
-        <Scotty
-          key={step}
-          mood={current?.mood ?? "idle"}
-          className="h-40 w-48 text-ink sm:h-48 sm:w-56"
-        />
-      </button>
-
-      <p className="min-h-7 text-lg font-semibold text-ink" aria-live="polite">
-        {current?.reply ?? "Bark is thinking of something at CMU..."}
-      </p>
-
-      <p className="max-w-md text-base text-muted">
-        Each day, Bark picks a place, course, food, or tradition from campus. You get {QUESTIONS}{" "}
-        yes-or-no questions to figure out what it is. The first puzzle is coming soon.
-      </p>
-
-      <ol className="flex flex-wrap justify-center gap-1.5" aria-label={`${QUESTIONS} questions`}>
-        {Array.from({ length: QUESTIONS }, (_, i) => (
-          <li
-            key={i}
-            className="bone"
-            style={{ animationDelay: `${i * 40}ms` }}
-            aria-hidden="true"
-          />
+function HowToPlay() {
+  return (
+    <section id="how" className="mx-auto w-full max-w-5xl px-4 sm:px-8">
+      <h2 className="eyebrow mb-4">How to play</h2>
+      <ol className="grid gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-3">
+        {STEPS.map((step, i) => (
+          <li key={step.title} className="bg-paper p-6">
+            <p className="mb-3 font-mono text-xs text-muted">0{i + 1}</p>
+            <h3 className="mb-1 text-lg font-bold">{step.title}</h3>
+            <p className="text-muted">{step.body}</p>
+          </li>
         ))}
       </ol>
-    </main>
+    </section>
+  );
+}
+
+export function App() {
+  return (
+    <div className="flex min-h-dvh flex-col">
+      <div className="glow" aria-hidden="true" />
+      <Header />
+      <main className="flex flex-1 flex-col gap-16 pb-16">
+        <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-8 px-4 pt-12 text-center sm:pt-16">
+          <div className="space-y-4">
+            <p className="eyebrow">A daily game from Bark</p>
+            <h1 className="text-5xl font-black tracking-tight sm:text-7xl">
+              Twenty <span className="gradient-text">Barks</span>
+            </h1>
+            <p className="mx-auto max-w-md text-lg text-muted">
+              Bark is thinking of something at CMU. You get twenty yes-or-no questions to sniff it
+              out.
+            </p>
+          </div>
+          <PracticeRound />
+        </div>
+        <HowToPlay />
+      </main>
+      <footer className="hairline-t">
+        <p className="mx-auto max-w-5xl px-4 py-6 text-sm text-muted sm:px-8">
+          Made with treats by <a href="https://scottylabs.org">ScottyLabs</a>. The first daily
+          puzzle is coming soon.
+        </p>
+      </footer>
+    </div>
   );
 }

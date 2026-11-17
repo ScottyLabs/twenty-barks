@@ -10,3 +10,6 @@ dist/
 
 # Secrets
 .env
+
+# Vite
+.vite/

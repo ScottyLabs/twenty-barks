@@ -44,6 +44,10 @@ Open <http://localhost:4173>. The Vite dev server proxies `/api` to the local se
 
 Kennel deploys `main`, `staging`, and every pull request. A pull request is served at `twenty-barks-app-pr-<number>.scottylabs.net`.
 
+## Bark
+
+The dog is Bark, the ScottyLabs mark drawn as three strokes. His drawing (`apps/web/src/bark/shape.ts` and `pose.ts`) comes from the [TartanHacks 2027 landing page](https://github.com/ScottyLabs/tartanhacks-landing-2027), where each point of the mark can move. `moods.ts` adds the game's reactions: a hop and a bark for yes, a droop and a shiver for no, a head tilt for sort of, and a run of hops for a win.
+
 ## License
 
 Licensed under either of [Apache License 2.0](LICENSE-APACHE-2.0) or [MIT](LICENSE-MIT), at your option.

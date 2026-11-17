@@ -1,93 +1,233 @@
 @import "tailwindcss";
 
+/*
+ * Ink on paper, as on scottylabs.org and the TartanHacks site: hierarchy comes from weight and size, with hairlines between sections.
+ * Colour is kept for the soft glow behind the page, as on Bark, and for the ScottyLabs gradient on the title.
+ */
 @theme {
-  --color-paper: #fbf7f0;
-  --color-ink: #1f1a17;
-  --color-muted: #6b625b;
-  --color-tartan: #b91c1c;
-  --color-bone: #e8dcc6;
-  --font-display: "Georgia", "Times New Roman", serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-paper: #191513;
-    --color-ink: #f3ece2;
-    --color-muted: #b3a89c;
-    --color-tartan: #f05252;
-    --color-bone: #4a4038;
-  }
+  --color-paper: #ffffff;
+  --color-ink: #0a0a0b;
+  --color-muted: #5d5d66;
+  --color-line: #e7e7ec;
+  --font-sans: "Satoshi", system-ui, "Avenir", "Helvetica", "Arial", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Menlo", monospace;
 }
 
 html {
-  color-scheme: light dark;
+  color-scheme: light;
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--color-paper);
   color: var(--color-ink);
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Scotty's moods. Each one plays once when the mood changes, except idle, which loops gently. */
-.scotty-idle .scotty-body {
-  animation: bob 2.4s ease-in-out infinite;
-}
-.scotty-yes .scotty-ear {
-  animation: perk 0.5s ease-out 2;
-}
-.scotty-yes .scotty-tail {
-  animation: wag 0.18s ease-in-out 6;
-}
-.scotty-no .scotty-head {
-  animation: shake 0.6s ease-in-out;
-}
-.scotty-tilt .scotty-head {
-  animation: tilt 0.9s ease-in-out forwards;
+::selection {
+  background: var(--color-ink);
+  color: var(--color-paper);
 }
 
-@keyframes bob {
-  50% {
-    transform: translateY(-2px);
-  }
-}
-@keyframes perk {
-  50% {
-    transform: translateY(-3px) scaleY(1.15);
-  }
-}
-@keyframes wag {
-  50% {
-    transform: rotate(-22deg);
-  }
-}
-@keyframes shake {
-  20%,
-  60% {
-    transform: rotate(-8deg);
-  }
-  40%,
-  80% {
-    transform: rotate(8deg);
-  }
-}
-@keyframes tilt {
-  to {
-    transform: rotate(-14deg);
-  }
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
 }
 
-/* The question counter, one bone per question. */
-.bone {
-  width: 1.25rem;
-  height: 0.5rem;
-  border-radius: 9999px;
-  background: var(--color-bone);
-  animation: pop-in 0.3s ease-out backwards;
+/* The soft colour behind everything, like Bark's own sign-in page. */
+.glow {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(40rem 28rem at 12% 8%, rgb(56 189 248 / 0.13), transparent 70%),
+    radial-gradient(36rem 30rem at 92% 22%, rgb(244 63 94 / 0.1), transparent 70%),
+    radial-gradient(44rem 30rem at 50% 105%, rgb(139 92 246 / 0.09), transparent 70%);
 }
-@keyframes pop-in {
+
+.hairline-b {
+  border-bottom: 1px solid var(--color-line);
+}
+.hairline-t {
+  border-top: 1px solid var(--color-line);
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.gradient-text {
+  background: linear-gradient(95deg, #38bdf8 0%, #4f6cf0 35%, #9b45c9 65%, #f43f5e 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* The game card, white and rounded like Bark's own. */
+.card {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem 1rem 1.75rem;
+  border: 1px solid var(--color-line);
+  border-radius: 2rem;
+  background: rgb(255 255 255 / 0.85);
+  box-shadow: 0 20px 60px -30px rgb(15 23 42 / 0.25);
+  backdrop-filter: blur(8px);
+}
+
+/* Bark stands on a hairline, with his speech bubble beside him. */
+.stage {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: end;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--color-ink);
+}
+.stage__dog {
+  width: 100%;
+  max-width: 17rem;
+  justify-self: end;
+}
+
+.bark {
+  display: block;
+  overflow: visible;
+}
+.bark__fill {
+  fill: var(--color-paper);
+  stroke: var(--color-paper);
+  stroke-linejoin: round;
+}
+.bark__line {
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+}
+.bark__woof {
+  stroke-linecap: round;
+}
+.bark__wonder {
+  fill: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 220px;
+  font-weight: 900;
+  text-anchor: middle;
+}
+
+.bubble {
+  position: relative;
+  align-self: center;
+  justify-self: start;
+  max-width: 17rem;
+  margin-bottom: 4rem;
+  padding: 0.85rem 1.1rem;
+  border: 1.5px solid var(--color-ink);
+  border-radius: 1.25rem 1.25rem 1.25rem 0.25rem;
+  background: var(--color-paper);
+  text-align: left;
+  line-height: 1.4;
+  animation: pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.verdict {
+  display: inline-block;
+  margin-bottom: 0.3rem;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.verdict--yes {
+  background: #dcfce7;
+  color: #166534;
+}
+.verdict--no {
+  background: #ffe4e6;
+  color: #be123c;
+}
+.verdict--sortof {
+  background: #fef3c7;
+  color: #92400e;
+}
+.verdict--correct {
+  background: linear-gradient(95deg, #38bdf8, #9b45c9, #f43f5e);
+  color: #fff;
+}
+
+/* Pill buttons, as on scottylabs.org: outlined by default, solid ink for the main action. */
+.pill {
+  padding: 0.55rem 1.1rem;
+  border: 1.5px solid var(--color-ink);
+  border-radius: 999px;
+  background: var(--color-paper);
+  font-weight: 500;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.pill:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+.pill:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+}
+.pill:disabled {
+  border-color: var(--color-line);
+  color: #a1a1aa;
+  text-decoration: line-through;
+  cursor: default;
+}
+.pill--solid {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.bone path {
+  fill: var(--color-ink);
+  transition:
+    fill 0.3s ease,
+    opacity 0.3s ease;
+}
+.bone--eaten path {
+  fill: var(--color-line);
+}
+
+@keyframes pop {
   from {
-    transform: scale(0);
+    opacity: 0;
+    transform: scale(0.9) translateY(6px);
+  }
+}
+
+@media (max-width: 560px) {
+  .stage {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .stage__dog {
+    max-width: 13rem;
+    justify-self: center;
+  }
+  .bubble {
+    order: -1;
+    justify-self: center;
+    margin-bottom: 0;
+    border-radius: 1.25rem 1.25rem 1.25rem 1.25rem;
   }
 }
 
@@ -96,5 +236,6 @@ body {
   *::before,
   *::after {
     animation: none !important;
+    transition: none !important;
   }
 }

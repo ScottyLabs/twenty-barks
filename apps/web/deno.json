@@ -4,10 +4,11 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "types": ["vite/client"]
+    "types": ["vite/client", "node"]
   },
   "imports": {
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.0.6",
+    "@types/node": "npm:@types/node@^22.15.3",
     "@types/react": "npm:@types/react@^19.2.2",
     "@types/react-dom": "npm:@types/react-dom@^19.2.2",
     "@vitejs/plugin-react": "npm:@vitejs/plugin-react@^5.0.4",
