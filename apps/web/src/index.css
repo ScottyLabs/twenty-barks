@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #fbf7f0;
+  --color-ink: #1f1a17;
+  --color-muted: #6b625b;
+  --color-tartan: #b91c1c;
+  --color-bone: #e8dcc6;
+  --font-display: "Georgia", "Times New Roman", serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-paper: #191513;
+    --color-ink: #f3ece2;
+    --color-muted: #b3a89c;
+    --color-tartan: #f05252;
+    --color-bone: #4a4038;
+  }
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Scotty's moods. Each one plays once when the mood changes, except idle, which loops gently. */
+.scotty-idle .scotty-body {
+  animation: bob 2.4s ease-in-out infinite;
+}
+.scotty-yes .scotty-ear {
+  animation: perk 0.5s ease-out 2;
+}
+.scotty-yes .scotty-tail {
+  animation: wag 0.18s ease-in-out 6;
+}
+.scotty-no .scotty-head {
+  animation: shake 0.6s ease-in-out;
+}
+.scotty-tilt .scotty-head {
+  animation: tilt 0.9s ease-in-out forwards;
+}
+
+@keyframes bob {
+  50% {
+    transform: translateY(-2px);
+  }
+}
+@keyframes perk {
+  50% {
+    transform: translateY(-3px) scaleY(1.15);
+  }
+}
+@keyframes wag {
+  50% {
+    transform: rotate(-22deg);
+  }
+}
+@keyframes shake {
+  20%,
+  60% {
+    transform: rotate(-8deg);
+  }
+  40%,
+  80% {
+    transform: rotate(8deg);
+  }
+}
+@keyframes tilt {
+  to {
+    transform: rotate(-14deg);
+  }
+}
+
+/* The question counter, one bone per question. */
+.bone {
+  width: 1.25rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--color-bone);
+  animation: pop-in 0.3s ease-out backwards;
+}
+@keyframes pop-in {
+  from {
+    transform: scale(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+  }
+}

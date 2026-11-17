@@ -1,0 +1,18 @@
+{
+  "name": "@twenty-barks/server",
+  "version": "0.0.0",
+  "exports": "./src/main.ts",
+  "imports": {
+    "@hono/node-server": "npm:@hono/node-server@^1.19.5",
+    "hono": "npm:hono@^4.10.4",
+    "pg": "npm:pg@^8.20.0",
+    "@types/pg": "npm:@types/pg@^8.20.0"
+  },
+  "tasks": {
+    "dev": "STATIC_DIR=../web/dist deno run -A --watch src/main.ts",
+    "start": "deno run -A src/main.ts",
+    "build": "deno compile --frozen --no-check --cached-only --allow-net --allow-env --allow-read --output dist/bin/twenty-barks src/main.ts",
+    "test": "deno test -A",
+    "check": "deno check src"
+  }
+}

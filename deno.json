@@ -1,0 +1,9 @@
+{
+  "workspace": ["./apps/server", "./apps/web"],
+  "nodeModulesDir": "auto",
+  "exclude": [".scottylabs", "apps/web/dist", "apps/server/dist"],
+  "tasks": {
+    "check": "deno task --cwd apps/server check && deno task --cwd apps/web check",
+    "test": "deno task --cwd apps/server test"
+  }
+}

@@ -1,0 +1,12 @@
+# Nix
+.pre-commit-config.yaml
+
+# Deno
+node_modules/
+dist/
+
+# OS
+.DS_Store
+
+# Secrets
+.env
