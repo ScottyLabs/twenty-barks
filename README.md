@@ -26,9 +26,11 @@ In production, kennel builds the web app and passes its store path to the server
 Install Lix and log in to OpenBao by following kennel's [local development](https://docs.kennel.scottylabs.org/guides/local-development/) and [secrets](https://docs.kennel.scottylabs.org/guides/secrets/) guides. Then:
 
 ```sh
-nix develop      # Deno, a local Postgres, and the git hooks
-dev              # Starts Postgres, the server on :3001, and the web app on :4173
+nix develop               # Deno, a local Postgres, and the git hooks
+pitchfork start --local   # Starts Postgres, the server on :3001, and the web app on :4173
 ```
+
+Stop everything with `pitchfork stop --local`, and follow one process's output with `pitchfork logs server`.
 
 Open <http://localhost:4173>. The Vite dev server proxies `/api` to the local server.
 
