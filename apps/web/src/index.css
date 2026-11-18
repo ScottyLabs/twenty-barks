@@ -196,6 +196,75 @@ body {
   background: var(--color-ink);
   color: var(--color-paper);
 }
+.pill--solid:disabled {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  text-decoration: none;
+  opacity: 0.35;
+}
+.pill--small {
+  padding: 0.35rem 0.8rem;
+  border-width: 1px;
+}
+
+/* The question box: one pill holding the input and its button. */
+.ask {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.3rem 0.3rem 1.1rem;
+  border: 1.5px solid var(--color-ink);
+  border-radius: 999px;
+  background: var(--color-paper);
+  transition: box-shadow 0.15s ease;
+}
+.ask:focus-within {
+  box-shadow: 0 0 0 4px rgb(79 108 240 / 0.18);
+}
+.ask__input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  font-size: 1rem;
+  outline: none;
+}
+.ask__input::placeholder {
+  color: #a1a1aa;
+}
+
+/* Every question so far, newest last, with Bark's verdict. */
+.log {
+  display: flex;
+  width: 100%;
+  max-width: 36rem;
+  flex-direction: column;
+  border-top: 1px solid var(--color-line);
+  text-align: left;
+}
+.log li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.25rem;
+  border-bottom: 1px solid var(--color-line);
+}
+.log__n {
+  width: 1.25rem;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+.log__q {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.log .verdict {
+  margin-bottom: 0;
+}
 
 .bone path {
   fill: var(--color-ink);

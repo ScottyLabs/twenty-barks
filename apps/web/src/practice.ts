@@ -1,40 +1,138 @@
 import type { Mood } from "./bark/moods.ts";
 
 export const QUESTION_LIMIT = 20;
+/** Long enough for any honest question, short enough to keep the judge prompt small later. */
+export const MAX_QUESTION_LENGTH = 120;
 
 export type Verdict = "yes" | "no" | "sortof" | "correct";
 
-export interface Question {
-  readonly id: string;
-  readonly text: string;
+export interface Answer {
+  /** Asking about the same thing twice costs nothing. */
+  readonly topic: string;
   readonly verdict: Verdict;
   readonly reply: string;
 }
 
+interface Rule extends Answer {
+  readonly match: RegExp;
+}
+
 /**
- * A scripted round, so the page can show how the game feels before the real daily puzzles exist. The answer is the Fence.
+ * The practice round's answer is the Fence. Until the real judge is wired up, typed questions are matched against these rules, in order, so the first match wins.
  */
-export const PRACTICE: readonly Question[] = [
-  { id: "place", text: "Is it a place?", verdict: "yes", reply: "Yes! You can go there." },
-  { id: "building", text: "Is it a building?", verdict: "no", reply: "Nope. No walls, no roof." },
-  { id: "eat", text: "Can you eat it?", verdict: "no", reply: "Please don't eat it." },
+const RULES: readonly Rule[] = [
   {
-    id: "same",
-    text: "Does it look the same every day?",
+    topic: "fence",
+    match: /\bfence\b/u,
+    verdict: "correct",
+    reply: "WOOF! It's the Fence!",
+  },
+  {
+    topic: "building",
+    match: /\b(building|hall|inside|indoors?|roof|walls?|room)\b/u,
+    verdict: "no",
+    reply: "Nope. No walls, no roof.",
+  },
+  {
+    topic: "eat",
+    match: /\b(eat|food|edible|drink|taste|snack)\b/u,
+    verdict: "no",
+    reply: "Please don't eat it.",
+  },
+  {
+    topic: "paint",
+    match: /\b(paint\w*|colou?r\w*|decorat\w*|art|spray)\b/u,
+    verdict: "yes",
+    reply: "Yes! Under cover of darkness.",
+  },
+  {
+    topic: "same",
+    match: /\b(same|change\w*|different|every day)\b/u,
     verdict: "sortof",
     reply: "Sort of... it gets a new coat almost every night.",
   },
   {
-    id: "paint",
-    text: "Do people paint it?",
+    topic: "tradition",
+    match: /\b(tradition\w*|old|history|historic\w*|famous)\b/u,
     verdict: "yes",
-    reply: "Yes! Under cover of darkness.",
+    reply: "Yes! It's one of the oldest traditions on campus.",
   },
-  { id: "fence", text: "Is it the Fence?", verdict: "correct", reply: "WOOF! It's the Fence!" },
+  {
+    topic: "big",
+    match: /\b(big|large|huge|small|tiny|tall|long)\b/u,
+    verdict: "sortof",
+    reply: "Sort of. You could walk its whole length in a few seconds.",
+  },
+  {
+    topic: "outside",
+    match: /\b(outside|outdoors?|open air)\b/u,
+    verdict: "yes",
+    reply: "Yes! Rain or shine.",
+  },
+  {
+    topic: "place",
+    match: /\b(place|location|somewhere|spot|visit|go there|on campus)\b/u,
+    verdict: "yes",
+    reply: "Yes! You can go there.",
+  },
+  {
+    topic: "alive",
+    match: /\b(person|people|professor|someone|alive|living|animal|dog)\b/u,
+    verdict: "no",
+    reply: "Not a who. A what.",
+  },
+  {
+    topic: "course",
+    match: /\b(class|course|major|lecture|exam)\b/u,
+    verdict: "no",
+    reply: "Not a class. No homework here.",
+  },
 ];
 
+/** Questions Bark can't answer with a yes or a no, like "where is it?". */
+const OPEN_QUESTION = /^(what|what's|whats|where|when|who|whose|why|how|which)\b/u;
+
+/** A guess at some other thing, like "Is it the Cut?". */
+const GUESS = /^(?:is it|it'?s|is this|it is)\s+(?:the\s+)?([a-z0-9' -]{2,40}?)\s*\??$/u;
+
+/** Suggestions for anyone stuck on what to ask first. */
+export const SUGGESTIONS: readonly string[] = [
+  "Is it a place?",
+  "Can you eat it?",
+  "Do people paint it?",
+  "Does it look the same every day?",
+];
+
+function normalize(text: string): string {
+  return text.toLowerCase().replaceAll(/\s+/gu, " ").trim();
+}
+
+/**
+ * Bark's answer to a typed question, or null when practice Bark can't tell. An unclear question costs nothing.
+ */
+export function interpret(text: string): Answer | null {
+  const question = normalize(text);
+  if (question === "") {
+    return null;
+  }
+  const fence = RULES[0];
+  if (OPEN_QUESTION.test(question) && !(fence?.match.test(question) ?? false)) {
+    return null;
+  }
+  const rule = RULES.find((r) => r.match.test(question));
+  if (rule !== undefined) {
+    return { topic: rule.topic, verdict: rule.verdict, reply: rule.reply };
+  }
+  const guess = GUESS.exec(question)?.[1];
+  if (guess !== undefined) {
+    return { topic: `guess:${guess}`, verdict: "no", reply: `Nope, it's not the ${guess}.` };
+  }
+  return null;
+}
+
 export interface Turn {
-  readonly question: Question;
+  readonly asked: string;
+  readonly answer: Answer;
 }
 
 export interface Round {
@@ -48,18 +146,22 @@ export function questionsLeft(round: Round): number {
   return QUESTION_LIMIT - round.turns.length;
 }
 
-export function hasAsked(round: Round, id: string): boolean {
-  return round.turns.some((turn) => turn.question.id === id);
+export function isOver(round: Round): boolean {
+  return round.won || questionsLeft(round) === 0;
 }
 
-/** The round after asking a question. Asking twice, or after the round is over, changes nothing. */
-export function ask(round: Round, question: Question): Round {
-  if (round.won || questionsLeft(round) === 0 || hasAsked(round, question.id)) {
+export function previousTurn(round: Round, answer: Answer): Turn | undefined {
+  return round.turns.find((turn) => turn.answer.topic === answer.topic);
+}
+
+/** The round after asking. Asking about the same thing twice, or after the round is over, changes nothing. */
+export function ask(round: Round, asked: string, answer: Answer): Round {
+  if (isOver(round) || previousTurn(round, answer) !== undefined) {
     return round;
   }
   return {
-    turns: [...round.turns, { question }],
-    won: question.verdict === "correct",
+    turns: [...round.turns, { asked: asked.trim(), answer }],
+    won: answer.verdict === "correct",
   };
 }
 
@@ -77,6 +179,6 @@ const SQUARES: Readonly<Record<Verdict, string>> = {
 
 /** The result to share, with no spoilers: one square per question. */
 export function shareText(round: Round): string {
-  const squares = round.turns.map((turn) => SQUARES[turn.question.verdict]).join("");
+  const squares = round.turns.map((turn) => SQUARES[turn.answer.verdict]).join("");
   return `Twenty Barks practice ${round.turns.length}/${QUESTION_LIMIT}\n${squares}`;
 }
