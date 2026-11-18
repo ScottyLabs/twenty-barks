@@ -102,6 +102,21 @@ body {
   display: block;
   overflow: visible;
 }
+/* Bark himself is the button: press him and he jumps. */
+.bark-button {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.bark-button:focus-visible {
+  border-radius: 1rem;
+  outline: 2px solid #4f6cf0;
+  outline-offset: 4px;
+}
 .bark__fill {
   fill: var(--color-paper);
   stroke: var(--color-paper);
