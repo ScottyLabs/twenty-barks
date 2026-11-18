@@ -5,12 +5,14 @@ import {
   ask,
   interpret,
   isOver,
+  loadPractice,
   MAX_QUESTION_LENGTH,
   moodFor,
   NEW_ROUND,
   normalize,
   previousTurn,
   questionsLeft,
+  savePractice,
   shareText,
   SUGGESTIONS,
   type Answer,
@@ -91,11 +93,17 @@ function afterHearing(round: Round, asked: string, heard: Heard): Step {
 }
 
 function useRound() {
-  const [step, setStep] = useState<Step>({ round: NEW_ROUND, speech: HELLO, mood: "idle" });
+  const [step, setStep] = useState<Step>(() => {
+    const round = loadPractice();
+    const speech =
+      round.turns.length === 0 ? HELLO : { verdict: null, text: "Welcome back! Keep sniffing." };
+    return { round, speech, mood: "idle" };
+  });
   const [beat, setBeat] = useState(0);
   const [thinking, setThinking] = useState(false);
   const show = (next: Step): void => {
     setStep(next);
+    savePractice(next.round);
     setBeat((b) => b + 1);
   };
   const { round } = step;

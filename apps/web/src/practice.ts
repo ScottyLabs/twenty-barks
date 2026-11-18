@@ -142,6 +142,50 @@ export interface Round {
 
 export const NEW_ROUND: Round = { turns: [], won: false };
 
+const SAVED_PRACTICE = "twenty-barks:practice";
+const VERDICTS: readonly Verdict[] = ["yes", "no", "sortof", "correct"];
+
+const read = (value: unknown, key: string): unknown =>
+  typeof value === "object" && value !== null ? (Reflect.get(value, key) as unknown) : undefined;
+
+function turnFrom(value: unknown): Turn | null {
+  const asked = read(value, "asked");
+  const answer = read(value, "answer");
+  const topic = read(answer, "topic");
+  const reply = read(answer, "reply");
+  const verdict = VERDICTS.find((known) => known === read(answer, "verdict"));
+  if (typeof asked !== "string" || typeof topic !== "string" || typeof reply !== "string") {
+    return null;
+  }
+  return verdict === undefined ? null : { asked, answer: { topic, verdict, reply } };
+}
+
+/** The practice round saved in this browser, so a reload does not lose it. */
+export function loadPractice(): Round {
+  try {
+    const saved: unknown = JSON.parse(globalThis.localStorage.getItem(SAVED_PRACTICE) ?? "null");
+    const turns = read(saved, "turns");
+    if (!Array.isArray(turns)) {
+      return NEW_ROUND;
+    }
+    const kept = turns.map((turn: unknown) => turnFrom(turn)).filter((turn) => turn !== null);
+    return {
+      turns: kept.slice(0, QUESTION_LIMIT),
+      won: kept.some((t) => t.answer.verdict === "correct"),
+    };
+  } catch {
+    return NEW_ROUND;
+  }
+}
+
+export function savePractice(round: Round): void {
+  try {
+    globalThis.localStorage.setItem(SAVED_PRACTICE, JSON.stringify(round));
+  } catch {
+    // Private windows may refuse; the round still works until the page closes.
+  }
+}
+
 export function questionsLeft(round: Round): number {
   return QUESTION_LIMIT - round.turns.length;
 }

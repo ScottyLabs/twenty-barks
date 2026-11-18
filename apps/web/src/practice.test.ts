@@ -1,7 +1,16 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { frameAt } from "./bark/moods.ts";
-import { ask, interpret, moodFor, NEW_ROUND, questionsLeft, shareText } from "./practice.ts";
+import {
+  ask,
+  interpret,
+  loadPractice,
+  moodFor,
+  NEW_ROUND,
+  questionsLeft,
+  savePractice,
+  shareText,
+} from "./practice.ts";
 import type { Round } from "./practice.ts";
 
 const answer = (text: string) => {
@@ -70,4 +79,13 @@ await test("Bark stays on his ground and settles after each reaction", () => {
     }
     assert.equal(frameAt(mood, 4, 4).lift, 0, `${mood} is still in the air after 4s`);
   }
+});
+
+await test("a practice round survives a reload, and junk in storage is ignored", () => {
+  const round = play("Is it a place?", "Can you eat it?");
+  savePractice(round);
+  assert.deepEqual(loadPractice(), round);
+  globalThis.localStorage.setItem("twenty-barks:practice", '{"turns":[{"asked":1}]}');
+  assert.deepEqual(loadPractice(), NEW_ROUND);
+  globalThis.localStorage.clear();
 });

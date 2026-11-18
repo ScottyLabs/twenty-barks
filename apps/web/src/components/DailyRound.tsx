@@ -73,6 +73,21 @@ function Done({ game, signedIn }: { readonly game: GameView; readonly signedIn: 
 
 const VERDICTS: readonly Verdict[] = ["yes", "no", "sortof", "correct"];
 
+/** What Bark says when the page opens: hello, or welcome back to a game under way. */
+function greeting(game: GameView | null): Speech {
+  if (game === null || game.turns.length === 0) {
+    return HELLO;
+  }
+  if (game.finished) {
+    return { verdict: null, text: "Welcome back! Today's puzzle is done. See you tomorrow!" };
+  }
+  const left = game.questionsLeft;
+  return {
+    verdict: null,
+    text: `Welcome back! You have ${left} ${left === 1 ? "question" : "questions"} left.`,
+  };
+}
+
 interface Heard {
   readonly game: GameView | null;
   readonly speech: Speech;
@@ -101,7 +116,7 @@ async function askToday(question: string, gameId: string | null): Promise<Heard>
 
 function useDaily(initial: GameView | null) {
   const [game, setGame] = useState(initial);
-  const [speech, setSpeech] = useState<Speech>(HELLO);
+  const [speech, setSpeech] = useState<Speech>(() => greeting(initial));
   const [mood, setMood] = useState<Mood>("idle");
   const [beat, setBeat] = useState(0);
   const [thinking, setThinking] = useState(false);
