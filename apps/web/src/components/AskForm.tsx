@@ -32,10 +32,13 @@ function Suggestions({
 /** A free-text question box, with a few starter questions for anyone stuck. */
 export function AskForm({
   maxLength,
+  busy,
   suggestions,
   onAsk,
 }: {
   readonly maxLength: number;
+  /** Waiting on an answer: typing goes on, asking waits. */
+  readonly busy: boolean;
   readonly suggestions: readonly string[];
   readonly onAsk: (question: string) => void;
 }) {
@@ -48,7 +51,7 @@ export function AskForm({
         className="ask"
         onSubmit={(event) => {
           event.preventDefault();
-          if (!blank) {
+          if (!blank && !busy) {
             onAsk(text);
             setText("");
           }
@@ -68,11 +71,11 @@ export function AskForm({
             setText(event.target.value);
           }}
         />
-        <button type="submit" className="pill pill--solid" disabled={blank}>
-          Ask
+        <button type="submit" className="pill pill--solid" disabled={blank || busy}>
+          {busy ? "..." : "Ask"}
         </button>
       </form>
-      <Suggestions suggestions={suggestions} onAsk={onAsk} />
+      <Suggestions suggestions={busy ? [] : suggestions} onAsk={onAsk} />
     </div>
   );
 }

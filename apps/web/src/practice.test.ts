@@ -29,6 +29,7 @@ await test("a wrong guess is a no, and an unclear question gets no answer", () =
   assert.equal(interpret("what is the meaning of life, really, in general"), null);
   assert.equal(interpret("   "), null);
   assert.equal(interpret("what's up dog"), null, "open questions are not yes-or-no");
+  assert.equal(interpret("is it bigger than a breadbox"), null, "only 'is it the ...' is a guess");
   assert.equal(answer("what about the fence?").verdict, "correct");
 });
 
@@ -61,7 +62,7 @@ await test("a correct guess makes Bark celebrate", () => {
 });
 
 await test("Bark stays on his ground and settles after each reaction", () => {
-  for (const mood of ["idle", "yes", "no", "sortof", "win"] as const) {
+  for (const mood of ["idle", "think", "yes", "no", "sortof", "win"] as const) {
     for (let t = 0; t < 4; t += 0.05) {
       const frame = frameAt(mood, t, t);
       assert.ok(frame.lift >= 0, `${mood} sinks below the ground at ${t}s`);

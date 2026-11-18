@@ -17,7 +17,12 @@ async function makeWebRoot(): Promise<string> {
 const healthyDatabase = async (): Promise<void> => {};
 
 await test("health returns 200 with the commit once the database answers", async () => {
-  const app = createApp({ staticDir: null, pingDatabase: healthyDatabase, commitHash: "abc" });
+  const app = createApp({
+    staticDir: null,
+    pingDatabase: healthyDatabase,
+    commitHash: "abc",
+    judge: null,
+  });
   const res = await app.request("/api/health");
   assert.equal(res.status, 200);
   assert.deepEqual(await res.json(), { status: "ok", database: true, commit: "abc" });
@@ -28,6 +33,7 @@ await test("health returns 503 when the database is unreachable", async () => {
     staticDir: null,
     pingDatabase: () => Promise.reject(new Error("connection refused")),
     commitHash: null,
+    judge: null,
   });
   const res = await app.request("/api/health");
   assert.equal(res.status, 503);
@@ -39,6 +45,7 @@ await test("unknown API routes return a JSON 404 instead of the app shell", asyn
     staticDir: await makeWebRoot(),
     pingDatabase: healthyDatabase,
     commitHash: null,
+    judge: null,
   });
   const res = await app.request("/api/nope");
   assert.equal(res.status, 404);
@@ -50,6 +57,7 @@ await test("client-side routes fall back to index.html", async () => {
     staticDir: await makeWebRoot(),
     pingDatabase: healthyDatabase,
     commitHash: null,
+    judge: null,
   });
   const res = await app.request("/stats");
   assert.equal(res.status, 200);
@@ -63,6 +71,7 @@ await test("fingerprinted assets are served with a long-lived cache", async () =
     staticDir: await makeWebRoot(),
     pingDatabase: healthyDatabase,
     commitHash: null,
+    judge: null,
   });
   const res = await app.request("/assets/app-abc123.js");
   assert.equal(res.status, 200);
@@ -76,6 +85,7 @@ await test("a missing file with an extension is a 404, not the app shell", async
     staticDir: await makeWebRoot(),
     pingDatabase: healthyDatabase,
     commitHash: null,
+    judge: null,
   });
   const res = await app.request("/assets/missing.js");
   assert.equal(res.status, 404);

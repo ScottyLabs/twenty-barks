@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Mood } from "../bark/moods.ts";
+import { askBark, type Heard } from "../api.ts";
 import {
   ask,
   interpret,
@@ -7,10 +8,12 @@ import {
   MAX_QUESTION_LENGTH,
   moodFor,
   NEW_ROUND,
+  normalize,
   previousTurn,
   questionsLeft,
   shareText,
   SUGGESTIONS,
+  type Answer,
   type Round,
   type Turn,
   type Verdict,
@@ -101,38 +104,74 @@ function Won({ round, onReset }: { readonly round: Round; readonly onReset: () =
   );
 }
 
-/** The next speech and round for a typed question. */
-function reply(round: Round, asked: string): { round: Round; speech: Speech; mood: Mood } {
-  const answer = interpret(asked);
-  if (answer === null) {
-    return { round, speech: { verdict: null, text: UNSURE }, mood: "sortof" };
-  }
+interface Step {
+  readonly round: Round;
+  readonly speech: Speech;
+  readonly mood: Mood;
+}
+
+const THINKING: Speech = { verdict: null, text: "Hmm, let me sniff that out..." };
+
+/** The next step once an answer is known, from the judge or the page's own rules. */
+function settle(round: Round, asked: string, answer: Answer): Step {
   const before = previousTurn(round, answer);
   if (before !== undefined) {
     const text = `You already asked that one ("${before.asked}"). No bone used.`;
     return { round, speech: { verdict: answer.verdict, text }, mood: moodFor(answer.verdict) };
   }
-  const next = ask(round, asked, answer);
   return {
-    round: next,
+    round: ask(round, asked, answer),
     speech: { verdict: answer.verdict, text: answer.reply },
     mood: moodFor(answer.verdict),
   };
 }
 
-/** A practice round you can play now, to get the feel of the game. */
-export function PracticeRound() {
-  const [round, setRound] = useState<Round>(NEW_ROUND);
-  const [speech, setSpeech] = useState<Speech>(HELLO);
-  const [mood, setMood] = useState<Mood>("idle");
-  const [beat, setBeat] = useState(0);
+function afterHearing(round: Round, asked: string, heard: Heard): Step {
+  if (heard.kind === "answer") {
+    return settle(round, asked, heard.answer);
+  }
+  if (heard.kind !== "offline") {
+    return { round, speech: { verdict: null, text: heard.reply }, mood: "sortof" };
+  }
+  // No judge to ask, so the page's own practice rules answer instead.
+  const answer = interpret(asked);
+  return answer === null
+    ? { round, speech: { verdict: null, text: UNSURE }, mood: "sortof" }
+    : settle(round, asked, answer);
+}
 
-  const show = (next: { round: Round; speech: Speech; mood: Mood }): void => {
-    setRound(next.round);
-    setSpeech(next.speech);
-    setMood(next.mood);
+function useRound() {
+  const [step, setStep] = useState<Step>({ round: NEW_ROUND, speech: HELLO, mood: "idle" });
+  const [beat, setBeat] = useState(0);
+  const [thinking, setThinking] = useState(false);
+  const show = (next: Step): void => {
+    setStep(next);
     setBeat((b) => b + 1);
   };
+  const { round } = step;
+
+  const onAsk = (asked: string): void => {
+    const repeat = round.turns.find((turn) => normalize(turn.asked) === normalize(asked));
+    if (repeat !== undefined) {
+      show(settle(round, asked, repeat.answer));
+      return;
+    }
+    setThinking(true);
+    show({ round, speech: THINKING, mood: "think" });
+    void askBark(asked).then((heard) => {
+      setThinking(false);
+      show(afterHearing(round, asked, heard));
+    });
+  };
+  const onReset = (): void => {
+    show({ round: NEW_ROUND, speech: HELLO, mood: "idle" });
+  };
+  return { ...step, beat, thinking, onAsk, onReset };
+}
+
+/** A practice round you can play now, to get the feel of the game. */
+export function PracticeRound() {
+  const { round, speech, mood, beat, thinking, onAsk, onReset } = useRound();
 
   return (
     <section className="card" aria-labelledby="practice-title">
@@ -144,19 +183,13 @@ export function PracticeRound() {
         <Bubble key={`bubble-${beat}`} speech={speech} />
       </div>
       {isOver(round) ? (
-        <Won
-          round={round}
-          onReset={() => {
-            show({ round: NEW_ROUND, speech: HELLO, mood: "idle" });
-          }}
-        />
+        <Won round={round} onReset={onReset} />
       ) : (
         <AskForm
           maxLength={MAX_QUESTION_LENGTH}
+          busy={thinking}
           suggestions={round.turns.length === 0 ? SUGGESTIONS : []}
-          onAsk={(asked) => {
-            show(reply(round, asked));
-          }}
+          onAsk={onAsk}
         />
       )}
       <Log turns={round.turns} />

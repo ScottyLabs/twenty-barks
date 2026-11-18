@@ -3,7 +3,7 @@ import { REST, type Pose } from "./pose.ts";
 import { HEIGHT } from "./shape.ts";
 
 /** How Bark is reacting. Each answer the game gives has its own. */
-export type Mood = "idle" | "yes" | "no" | "sortof" | "win";
+export type Mood = "idle" | "think" | "yes" | "no" | "sortof" | "win";
 
 /** Everything the drawing needs for one moment of a reaction. */
 export interface Frame {
@@ -59,6 +59,24 @@ function earFlick(clock: number, every: number): number {
 function idle(clock: number): Frame {
   return {
     pose: { ...REST, ear: earFlick(clock, 4.2) },
+    squash: breathing(clock),
+    lift: 0,
+    shiver: 0,
+    woof: 0,
+    wonder: 0,
+  };
+}
+
+/** Waiting on the judge: head cocked and sniffing, ear up. */
+function think(t: number, clock: number): Frame {
+  const cock = smooth01(t / 0.3);
+  return {
+    pose: {
+      ...REST,
+      head: -0.09 * cock + 0.025 * Math.sin(t * TAU * 3.2),
+      ear: -0.26 * cock,
+      beard: 0.04 * Math.sin(t * TAU * 3.2),
+    },
     squash: breathing(clock),
     lift: 0,
     shiver: 0,
@@ -127,6 +145,7 @@ function win(t: number, clock: number): Frame {
 
 const REACTIONS: Readonly<Record<Mood, (since: number, clock: number) => Frame>> = {
   idle: (_since, clock) => idle(clock),
+  think,
   yes,
   no,
   sortof: sortOf,
