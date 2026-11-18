@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createApp } from "./app.ts";
+import { Store } from "./store.ts";
+import { memoryDb } from "./testing.ts";
 import { decide } from "./ask.ts";
 import { jevJudge, type Judge, type Judgment } from "./jev.ts";
 import { PRACTICE } from "./secret.ts";
+
+const store = new Store(await memoryDb());
 
 const odds = (partial: Partial<Judgment>): Judgment => ({
   yes: 0,
@@ -69,6 +73,7 @@ const ask = (app: ReturnType<typeof createApp>, body: unknown) =>
 
 const appWith = (judge: Judge | null, questionsPerMinute = 30) =>
   createApp({
+    store,
     staticDir: null,
     pingDatabase: () => Promise.resolve(),
     commitHash: null,

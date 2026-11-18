@@ -2,7 +2,11 @@ import process from "node:process";
 import { serve } from "@hono/node-server";
 import pg from "pg";
 import { createApp } from "./app.ts";
+import { parseAdmins } from "./context.ts";
+import { migrate, poolDb } from "./db.ts";
 import { jevJudge } from "./jev.ts";
+import { keycloak } from "./oidc.ts";
+import { Store } from "./store.ts";
 
 // Node APIs rather than the Deno namespace, since the type-aware linter cannot see Deno's global types. Deno runs them natively.
 function readEnv(name: string): string | null {
@@ -20,6 +24,9 @@ if (databaseUrl === null) {
 const port = Number(readEnv("PORT") ?? "3001");
 const pool = new pg.Pool({ connectionString: databaseUrl, max: 5 });
 
+const db = poolDb(pool);
+await migrate(db);
+
 const gatewayUrl = readEnv("LITELLM_BASE_URL");
 const gatewayKey = readEnv("LITELLM_API_KEY");
 if (gatewayUrl === null || gatewayKey === null) {
@@ -28,13 +35,30 @@ if (gatewayUrl === null || gatewayKey === null) {
   );
 }
 
+const keycloakUrl = readEnv("KEYCLOAK_URL");
+const realm = readEnv("KEYCLOAK_REALM");
+const clientId = readEnv("OIDC_CLIENT_ID");
+const clientSecret = readEnv("OIDC_CLIENT_SECRET");
+const oidc =
+  keycloakUrl === null || realm === null || clientId === null || clientSecret === null
+    ? null
+    : keycloak({ keycloakUrl, realm, clientId, clientSecret });
+if (oidc === null) {
+  console.warn("Keycloak settings are missing, so nobody can sign in. The game still works.");
+}
+
 const app = createApp({
   staticDir: readEnv("STATIC_DIR"),
   pingDatabase: async () => {
     await pool.query("select 1");
   },
   commitHash: readEnv("COMMIT_HASH"),
+  store: new Store(db),
   judge: gatewayUrl === null || gatewayKey === null ? null : jevJudge(gatewayUrl, gatewayKey),
+  oidc,
+  appUrl: readEnv("APP_URL") ?? "http://localhost:4173",
+  relayUrl: readEnv("OAUTH_RELAY_URL"),
+  admins: parseAdmins(readEnv("ADMIN_USERS")),
 });
 
 const quiet = readEnv("LOG_LEVEL") === "error";

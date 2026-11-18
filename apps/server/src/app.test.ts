@@ -4,7 +4,11 @@ import { tmpdir } from "node:os";
 import { test } from "node:test";
 import { join } from "node:path";
 import { createApp } from "./app.ts";
+import { Store } from "./store.ts";
+import { memoryDb } from "./testing.ts";
 import { resolveInside } from "./static.ts";
+
+const store = new Store(await memoryDb());
 
 async function makeWebRoot(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "twenty-barks-web-"));
@@ -18,6 +22,7 @@ const healthyDatabase = async (): Promise<void> => {};
 
 await test("health returns 200 with the commit once the database answers", async () => {
   const app = createApp({
+    store,
     staticDir: null,
     pingDatabase: healthyDatabase,
     commitHash: "abc",
@@ -30,6 +35,7 @@ await test("health returns 200 with the commit once the database answers", async
 
 await test("health returns 503 when the database is unreachable", async () => {
   const app = createApp({
+    store,
     staticDir: null,
     pingDatabase: () => Promise.reject(new Error("connection refused")),
     commitHash: null,
@@ -42,6 +48,7 @@ await test("health returns 503 when the database is unreachable", async () => {
 
 await test("unknown API routes return a JSON 404 instead of the app shell", async () => {
   const app = createApp({
+    store,
     staticDir: await makeWebRoot(),
     pingDatabase: healthyDatabase,
     commitHash: null,
@@ -54,6 +61,7 @@ await test("unknown API routes return a JSON 404 instead of the app shell", asyn
 
 await test("client-side routes fall back to index.html", async () => {
   const app = createApp({
+    store,
     staticDir: await makeWebRoot(),
     pingDatabase: healthyDatabase,
     commitHash: null,
@@ -68,6 +76,7 @@ await test("client-side routes fall back to index.html", async () => {
 
 await test("fingerprinted assets are served with a long-lived cache", async () => {
   const app = createApp({
+    store,
     staticDir: await makeWebRoot(),
     pingDatabase: healthyDatabase,
     commitHash: null,
@@ -82,6 +91,7 @@ await test("fingerprinted assets are served with a long-lived cache", async () =
 
 await test("a missing file with an extension is a 404, not the app shell", async () => {
   const app = createApp({
+    store,
     staticDir: await makeWebRoot(),
     pingDatabase: healthyDatabase,
     commitHash: null,

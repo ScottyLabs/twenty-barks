@@ -6,7 +6,9 @@
     "@hono/node-server": "npm:@hono/node-server@^1.19.5",
     "hono": "npm:hono@^4.10.4",
     "pg": "npm:pg@^8.20.0",
-    "@types/pg": "npm:@types/pg@^8.20.0"
+    "@types/pg": "npm:@types/pg@^8.20.0",
+    "openid-client": "npm:openid-client@^6.8.4",
+    "@electric-sql/pglite": "npm:@electric-sql/pglite@^0.3.0"
   },
   "tasks": {
     "dev": "STATIC_DIR=../web/dist deno run -A --watch src/main.ts",

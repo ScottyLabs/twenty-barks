@@ -1,10 +1,15 @@
 import { Hono } from "hono";
-import type { Context } from "hono";
 import { decide, MAX_QUESTION_LENGTH } from "./ask.ts";
+import { type AppEnv, jsonBody, stringField } from "./context.ts";
 import type { Judge } from "./jev.ts";
 import { RateLimit } from "./limit.ts";
+import type { Oidc } from "./oidc.ts";
+import { addAdmin } from "./routes/admin.ts";
+import { addAuth } from "./routes/auth.ts";
+import { addGame, clientOf } from "./routes/game.ts";
 import { PRACTICE } from "./secret.ts";
 import { serveWebApp } from "./static.ts";
+import type { Store } from "./store.ts";
 
 export interface AppOptions {
   /** Directory holding the built web app, or null to serve only the API. */
@@ -12,43 +17,27 @@ export interface AppOptions {
   /** Resolves when the database answers a trivial query, and rejects otherwise. */
   readonly pingDatabase: () => Promise<void>;
   readonly commitHash: string | null;
+  readonly store: Store;
   /** Answers questions, or null when the AI gateway is not configured. */
   readonly judge: Judge | null;
+  /** Signs players in, or null when login is not configured. */
+  readonly oidc?: Oidc | null;
+  readonly appUrl?: string;
+  readonly relayUrl?: string | null;
+  /** Usernames or emails allowed into the admin pages. */
+  readonly admins?: ReadonlySet<string>;
   /** Questions allowed per client per minute. */
   readonly questionsPerMinute?: number;
+  readonly now?: () => Date;
 }
 
-/** Behind Kennel's proxy the client is the first forwarded address. */
-function clientOf(c: Context): string {
-  return c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
-}
-
-async function readQuestion(c: Context): Promise<string | null> {
-  try {
-    const body: unknown = await c.req.json();
-    if (typeof body !== "object" || body === null || !("question" in body)) {
-      return null;
-    }
-    const { question } = body;
-    if (typeof question !== "string") {
-      return null;
-    }
-    const trimmed = question.trim();
-    return trimmed === "" || trimmed.length > MAX_QUESTION_LENGTH ? null : trimmed;
-  } catch {
-    return null;
-  }
-}
-
-function addAsk(app: Hono, options: AppOptions): void {
-  const limit = new RateLimit(options.questionsPerMinute ?? 30, 60_000);
+function addPractice(app: Hono<AppEnv>, judge: Judge | null, limit: RateLimit): void {
   app.post("/api/practice/ask", async (c) => {
-    const { judge } = options;
     if (judge === null) {
       return c.json({ error: "Bark is not taking questions right now" }, 503);
     }
-    const question = await readQuestion(c);
-    if (question === null) {
+    const question = stringField(await jsonBody(c), "question")?.trim() ?? "";
+    if (question === "" || question.length > MAX_QUESTION_LENGTH) {
       return c.json({ error: `Ask a question of up to ${MAX_QUESTION_LENGTH} characters` }, 400);
     }
     if (!limit.allow(clientOf(c), Date.now())) {
@@ -63,16 +52,7 @@ function addAsk(app: Hono, options: AppOptions): void {
   });
 }
 
-export function createApp(options: AppOptions): Hono {
-  const app = new Hono();
-
-  app.use(async (c, next) => {
-    await next();
-    c.header("x-content-type-options", "nosniff");
-    c.header("referrer-policy", "strict-origin-when-cross-origin");
-    c.header("x-frame-options", "DENY");
-  });
-
+function addHealth(app: Hono<AppEnv>, options: AppOptions): void {
   // Kennel holds traffic back until this returns 200, so it only does once the database is reachable.
   app.get("/api/health", async (c) => {
     try {
@@ -82,8 +62,32 @@ export function createApp(options: AppOptions): Hono {
     }
     return c.json({ status: "ok", database: true, commit: options.commitHash });
   });
+}
 
-  addAsk(app, options);
+export function createApp(options: AppOptions): Hono<AppEnv> {
+  const app = new Hono<AppEnv>();
+  const { store, judge } = options;
+  const admins = options.admins ?? new Set<string>();
+  const limit = new RateLimit(options.questionsPerMinute ?? 30, 60_000);
+
+  app.use(async (c, next) => {
+    await next();
+    c.header("x-content-type-options", "nosniff");
+    c.header("referrer-policy", "strict-origin-when-cross-origin");
+    c.header("x-frame-options", "DENY");
+  });
+
+  addHealth(app, options);
+  addAuth(app, {
+    store,
+    oidc: options.oidc ?? null,
+    appUrl: options.appUrl ?? "http://localhost:4173",
+    relayUrl: options.relayUrl ?? null,
+    admins,
+  });
+  addPractice(app, judge, limit);
+  addGame(app, { store, judge, limit, now: options.now ?? (() => new Date()) });
+  addAdmin(app, { store, judge, admins });
 
   app.all("/api/*", (c) => c.json({ error: "Not found" }, 404));
 
