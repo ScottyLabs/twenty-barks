@@ -26,16 +26,20 @@ export function Link({
   to,
   className,
   children,
+  onNavigate,
 }: {
   readonly to: string;
   readonly className?: string;
   readonly children: ReactNode;
+  /** Runs on any click, for example to close the menu the link is in. */
+  readonly onNavigate?: () => void;
 }) {
   return (
     <a
       href={to}
       className={className}
       onClick={(event) => {
+        onNavigate?.();
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) {
           return;
         }

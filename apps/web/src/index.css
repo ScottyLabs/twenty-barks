@@ -369,19 +369,69 @@ body {
   color: #52525b;
 }
 
-/* The signed-in greeting; it gives way to the links on narrow screens. */
-.welcome {
-  max-width: 12rem;
-  overflow: hidden;
+/* The signed-in greeting, which opens onto the account links. */
+.account {
+  position: relative;
+}
+.account__button {
+  display: flex;
+  max-width: 14rem;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.8rem;
+  border: 1.5px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-paper);
   color: var(--color-muted);
-  text-overflow: ellipsis;
   white-space: nowrap;
+  transition: border-color 0.15s ease;
 }
-.welcome strong {
+.account__button:hover,
+.account__button[aria-expanded="true"] {
+  border-color: var(--color-ink);
+}
+.account__button strong {
+  overflow: hidden;
   color: var(--color-ink);
+  text-overflow: ellipsis;
 }
-@media (max-width: 480px) {
-  .welcome {
-    display: none;
-  }
+.chevron {
+  flex: none;
+  color: var(--color-ink);
+  transition: transform 0.15s ease;
+}
+.chevron--open {
+  transform: rotate(180deg);
+}
+.account__menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  display: flex;
+  min-width: 11rem;
+  flex-direction: column;
+  padding: 0.35rem;
+  border: 1px solid var(--color-line);
+  border-radius: 1rem;
+  background: var(--color-paper);
+  box-shadow: 0 16px 40px -20px rgb(15 23 42 / 0.35);
+  animation: pop 0.18s ease-out;
+}
+.account__item {
+  display: block;
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.65rem;
+  font-weight: 500;
+  text-align: left;
+}
+.account__item:hover,
+.account__item:focus-visible {
+  background: #f4f4f5;
+  outline: none;
+}
+.account__rule {
+  margin: 0.3rem 0.4rem;
+  border-color: var(--color-line);
 }

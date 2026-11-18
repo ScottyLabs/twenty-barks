@@ -1,11 +1,7 @@
 import { Link } from "../router.tsx";
-import { loginHref, logout, type Me } from "../server.ts";
+import { loginHref, type Me } from "../server.ts";
+import { AccountMenu } from "./AccountMenu.tsx";
 import { Mark } from "./Mark.tsx";
-
-/** "Welcome, Krish" reads better than a full name in the header. */
-function firstName(name: string): string {
-  return name.trim().split(/\s+/u)[0] ?? name;
-}
 
 function Account({
   me,
@@ -23,31 +19,7 @@ function Account({
       </a>
     ) : null;
   }
-  return (
-    <>
-      <span className="welcome">
-        Welcome, <strong>{firstName(me.user.name)}</strong>
-      </span>
-      <Link to="/scores" className="nav-link">
-        My scores
-      </Link>
-      {me.user.admin && (
-        <Link to="/admin" className="nav-link">
-          Admin
-        </Link>
-      )}
-      <button
-        type="button"
-        className="pill pill--small"
-        title={`Signed in as ${me.user.name}`}
-        onClick={() => {
-          void logout().then(onChange);
-        }}
-      >
-        Sign out
-      </button>
-    </>
-  );
+  return <AccountMenu name={me.user.name} admin={me.user.admin} onSignedOut={onChange} />;
 }
 
 export function Header({
