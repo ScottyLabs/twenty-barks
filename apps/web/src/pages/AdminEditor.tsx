@@ -90,7 +90,7 @@ export function Editor({
   };
   return (
     <form
-      className="flex flex-col gap-4"
+      className="flex w-full flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSave();
@@ -147,7 +147,7 @@ export function Tryout({ draft }: { readonly draft: Draft }) {
   const [result, setResult] = useState("");
   return (
     <form
-      className="flex flex-col gap-2"
+      className="flex w-full flex-col gap-2 text-left"
       onSubmit={(event) => {
         event.preventDefault();
         setResult("Asking Jev...");

@@ -4,6 +4,7 @@ import pg from "pg";
 import { createApp } from "./app.ts";
 import { parseAdmins } from "./context.ts";
 import { migrate, poolDb } from "./db.ts";
+import { gatewayDrafter } from "./draft.ts";
 import { jevJudge } from "./jev.ts";
 import { keycloak } from "./oidc.ts";
 import { Store } from "./store.ts";
@@ -55,6 +56,11 @@ const app = createApp({
   commitHash: readEnv("COMMIT_HASH"),
   store: new Store(db),
   judge: gatewayUrl === null || gatewayKey === null ? null : jevJudge(gatewayUrl, gatewayKey),
+  // A mid-tier model is plenty for drafting, and only admins can ask for a draft.
+  drafter:
+    gatewayUrl === null || gatewayKey === null
+      ? null
+      : gatewayDrafter(gatewayUrl, gatewayKey, readEnv("DRAFT_MODEL") ?? "claude-sonnet-5-5"),
   oidc,
   appUrl: readEnv("APP_URL") ?? "http://localhost:4173",
   relayUrl: readEnv("OAUTH_RELAY_URL"),

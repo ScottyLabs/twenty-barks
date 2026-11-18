@@ -356,3 +356,15 @@ body {
 .admin-row--on {
   font-weight: 700;
 }
+
+/* Facts the AI was not sure of, for an admin to verify. */
+.check {
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #fcd34d;
+  border-radius: 0.9rem;
+  background: #fffbeb;
+}
+.verdict--unsure {
+  background: #f4f4f5;
+  color: #52525b;
+}

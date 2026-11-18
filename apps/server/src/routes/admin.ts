@@ -1,13 +1,50 @@
 import type { Hono } from "hono";
 import { decide, MAX_QUESTION_LENGTH } from "../ask.ts";
 import { type AppEnv, isAdmin, jsonBody, stringField, stringList } from "../context.ts";
+import type { Drafter, PuzzleDraft } from "../draft.ts";
 import type { Judge } from "../jev.ts";
 import type { Puzzle, Store } from "../store.ts";
 
 export interface AdminOptions {
   readonly store: Store;
   readonly judge: Judge | null;
+  readonly drafter: Drafter | null;
   readonly admins: ReadonlySet<string>;
+}
+
+/** Each draft question asked of Jev against the draft's facts, so an admin sees how it will play. */
+async function tryQuestions(judge: Judge | null, draft: PuzzleDraft) {
+  if (judge === null) {
+    return [];
+  }
+  const secret = { name: draft.name, aliases: draft.aliases, facts: draft.facts };
+  const results = await Promise.allSettled(
+    draft.questions.map(async (question) => ({
+      question,
+      ...decide(secret, question, await judge(secret, question)),
+    })),
+  );
+  return results.flatMap((result) => (result.status === "fulfilled" ? [result.value] : []));
+}
+
+function addDraft(app: Hono<AppEnv>, options: AdminOptions): void {
+  // Only when an admin presses the button: nothing drafts or schedules on its own.
+  app.post("/api/admin/draft", async (c) => {
+    if (options.drafter === null) {
+      return c.json({ error: "The AI gateway is not configured" }, 503);
+    }
+    const body = await jsonBody(c);
+    const thing = (stringField(body, "thing") ?? "").trim().slice(0, 120);
+    const notes = (stringField(body, "notes") ?? "").trim().slice(0, 1000);
+    const past = (await options.store.puzzles()).map((puzzle) => puzzle.name);
+    try {
+      const draft = await options.drafter({ thing, notes, past });
+      return c.json({ draft, tried: await tryQuestions(options.judge, draft) });
+    } catch (error) {
+      console.error("draft failed:", error instanceof Error ? error.message : error);
+      return c.json({ error: "The AI could not draft a puzzle. Try again?" }, 502);
+    }
+  });
 }
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/u;
@@ -46,6 +83,8 @@ export function addAdmin(app: Hono<AppEnv>, options: AdminOptions): void {
     }
     return next();
   });
+
+  addDraft(app, options);
 
   app.get("/api/admin/puzzles", async (c) => c.json({ puzzles: await options.store.puzzles() }));
 

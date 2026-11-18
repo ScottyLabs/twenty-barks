@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { decide, MAX_QUESTION_LENGTH } from "./ask.ts";
 import { type AppEnv, jsonBody, stringField } from "./context.ts";
+import type { Drafter } from "./draft.ts";
 import type { Judge } from "./jev.ts";
 import { RateLimit } from "./limit.ts";
 import type { Oidc } from "./oidc.ts";
@@ -20,6 +21,8 @@ export interface AppOptions {
   readonly store: Store;
   /** Answers questions, or null when the AI gateway is not configured. */
   readonly judge: Judge | null;
+  /** Drafts puzzles for admins, or null when the AI gateway is not configured. */
+  readonly drafter?: Drafter | null;
   /** Signs players in, or null when login is not configured. */
   readonly oidc?: Oidc | null;
   readonly appUrl?: string;
@@ -87,7 +90,7 @@ export function createApp(options: AppOptions): Hono<AppEnv> {
   });
   addPractice(app, judge, limit);
   addGame(app, { store, judge, limit, now: options.now ?? (() => new Date()) });
-  addAdmin(app, { store, judge, admins });
+  addAdmin(app, { store, judge, drafter: options.drafter ?? null, admins });
 
   app.all("/api/*", (c) => c.json({ error: "Not found" }, 404));
 

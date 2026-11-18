@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { at, getJson, list, puzzleOf, sendJson, str, type Me, type Puzzle } from "../server.ts";
+import { DraftPanel } from "./AdminDraft.tsx";
 import { bodyOf, type Draft, draftOf, Editor, EMPTY, Tryout } from "./AdminEditor.tsx";
 
 async function fetchPuzzles(): Promise<Puzzle[]> {
@@ -108,6 +109,12 @@ export function AdminPage({ me }: { readonly me: Me | null }) {
     <div className="grid w-full gap-8 text-left lg:grid-cols-[18rem_1fr]">
       <Schedule puzzles={admin.puzzles} selected={admin.draft.day} onPick={admin.onPick} />
       <div className="card items-stretch">
+        <DraftPanel
+          onDraft={(drafted) => {
+            admin.setDraft({ ...admin.draft, ...drafted });
+          }}
+        />
+        <hr className="border-line" />
         <Editor
           draft={admin.draft}
           onChange={admin.setDraft}
