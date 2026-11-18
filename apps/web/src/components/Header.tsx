@@ -41,11 +41,6 @@ export function Header({
           </span>
         </Link>
         <nav className="flex items-center gap-3 text-sm sm:gap-4" aria-label="Account">
-          {path === "/" && (
-            <a href="#how" className="nav-link hidden sm:inline">
-              How to play
-            </a>
-          )}
           {me !== null && <Account me={me} path={path} onChange={onChange} />}
         </nav>
       </div>
