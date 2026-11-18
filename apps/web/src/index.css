@@ -368,3 +368,20 @@ body {
   background: #f4f4f5;
   color: #52525b;
 }
+
+/* The signed-in greeting; it gives way to the links on narrow screens. */
+.welcome {
+  max-width: 12rem;
+  overflow: hidden;
+  color: var(--color-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.welcome strong {
+  color: var(--color-ink);
+}
+@media (max-width: 480px) {
+  .welcome {
+    display: none;
+  }
+}
