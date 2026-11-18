@@ -11,13 +11,23 @@ twenty-barks/
 ├── apps/
 │   ├── server/          # Hono API on Deno, also serves apps/web/dist
 │   │   └── src/
-│   │       ├── main.ts      # Entry point: reads the environment and starts the server
-│   │       ├── app.ts       # Routes, including the /api/health check kennel polls
+│   │       ├── main.ts      # Entry point: reads the environment, migrates, and starts the server
+│   │       ├── app.ts       # Puts the routes together, including the /api/health check kennel polls
+│   │       ├── routes/      # Sign-in, the daily game and scores, and the admin API
+│   │       ├── jev.ts       # Asks Jev, through the AI gateway, how to answer a question
+│   │       ├── ask.ts       # Turns Jev's odds into Bark's verdict and reply
+│   │       ├── game.ts      # Turns, campus days, scores, and streaks
+│   │       ├── store.ts     # Everything kept in Postgres
+│   │       ├── db.ts        # Migrations, run at startup
 │   │       └── static.ts    # Serves the web app, with index.html as the fallback for client routes
 │   └── web/             # React, Vite, and Tailwind
 ├── flake.nix            # Dev shell, local Postgres, and the kennel deployment
 └── secretspec.toml      # Environment variables, resolved from OpenBao
 ```
+
+Each question goes to the server, which asks [Jev](https://docs.typesafe.ai) (through the ScottyLabs AI gateway) how to answer it against the day's fact sheet. The fact sheet never leaves the server, and the answer is only revealed once a game is over. A guess wins only when the question names the answer and Jev reads it as a guess.
+
+Anyone can play without signing in. Signing in with an Andrew ID saves games, scores, and a streak of days solved in a row; a game started before signing in carries over. The admin page at `/admin` schedules puzzles and tries questions against a draft's facts. It is open only to the usernames or emails in the `ADMIN_USERS` secret, so admins are not listed in this repository.
 
 In production, kennel builds the web app and passes its store path to the server as `STATIC_DIR`, provisions a Postgres database as `DATABASE_URL`, and sets `PORT`. The health check returns 200 only once the database answers, so kennel does not route traffic to a deployment that cannot reach it.
 
@@ -27,7 +37,7 @@ Install Lix and log in to OpenBao by following kennel's [local development](http
 
 ```sh
 nix develop               # Deno, a local Postgres, and the git hooks
-pitchfork start --local   # Starts Postgres, the server on :3001, and the web app on :4173
+pitchfork start --local   # Starts Postgres, the login relay, the server on :3001, and the web app on :4173
 ```
 
 Stop everything with `pitchfork stop --local`, and follow one process's output with `pitchfork logs server`.
@@ -36,9 +46,11 @@ Open <http://localhost:4173>. The Vite dev server proxies `/api` to the local se
 
 | Command | What it does |
 | -- | -- |
-| `deno task test` | Server tests |
+| `deno task test` | Server and web tests. Server tests run their SQL on an in-memory Postgres ([PGlite](https://pglite.dev)) |
 | `deno task check` | Type-checks the server and the web app |
 | `nix fmt` | Formats the repository |
+
+To make yourself an admin locally, add your Andrew ID to `ADMIN_USERS` in OpenBao for the `dev` profile, or set it when starting the server: `ADMIN_USERS=<andrew-id> pitchfork start --local`.
 
 ## Deployment
 

@@ -64,6 +64,25 @@ await test("the judge sends the facts and question to Jev under /typesafe", asyn
   assert.match(JSON.stringify(sent[0]?.body), /"player_question":"is it red"/u);
 });
 
+await test("the judge tries once more after a dropped connection or a busy gateway", async () => {
+  let calls = 0;
+  const flaky: typeof fetch = () => {
+    calls += 1;
+    if (calls === 1) {
+      return Promise.reject(new TypeError("fetch failed"));
+    }
+    if (calls === 3) {
+      return Promise.resolve(new Response("busy", { status: 529 }));
+    }
+    return Promise.resolve(Response.json({ answers: { answer: { probabilities: { yes: 1 } } } }));
+  };
+  const judge = jevJudge("https://gateway.test", "k", flaky);
+  assert.equal((await judge(PRACTICE, "is it red")).yes, 1);
+  assert.equal(calls, 2);
+  assert.equal((await judge(PRACTICE, "is it blue")).yes, 1);
+  assert.equal(calls, 4);
+});
+
 const ask = (app: ReturnType<typeof createApp>, body: unknown) =>
   app.request("/api/practice/ask", {
     method: "POST",

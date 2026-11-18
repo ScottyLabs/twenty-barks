@@ -51,13 +51,22 @@ function probability(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
+/** Statuses worth one more try: rate limited, overloaded, or a gateway hiccup. */
+const RETRY_STATUSES = new Set([429, 502, 503, 529]);
+const RETRY_DELAY_MS = 250;
+
+const pause = (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
 /**
- * A judge that asks TypeSafe's Jev through the ScottyLabs AI gateway, which serves it under `/typesafe`.
+ * A judge that asks TypeSafe's Jev through the ScottyLabs AI gateway, which serves it under `/typesafe`. A dropped connection or a busy gateway gets one more try, as TypeSafe's docs advise.
  */
 export function jevJudge(baseUrl: string, apiKey: string, fetchFn: typeof fetch = fetch): Judge {
   const url = `${baseUrl.replace(/\/+$/u, "")}/typesafe/v1/systemone`;
-  return async (secret, question) => {
-    const res = await fetchFn(url, {
+  const send = (secret: Secret, question: string): Promise<Response> =>
+    fetchFn(url, {
       method: "POST",
       headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
       body: JSON.stringify({
@@ -67,6 +76,20 @@ export function jevJudge(baseUrl: string, apiKey: string, fetchFn: typeof fetch 
       }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
+  const sendWithRetry = async (secret: Secret, question: string): Promise<Response> => {
+    try {
+      const first = await send(secret, question);
+      if (!RETRY_STATUSES.has(first.status)) {
+        return first;
+      }
+    } catch {
+      // A dropped connection; try once more below.
+    }
+    await pause(RETRY_DELAY_MS);
+    return send(secret, question);
+  };
+  return async (secret, question) => {
+    const res = await sendWithRetry(secret, question);
     if (!res.ok) {
       throw new Error(`Jev answered ${res.status}`);
     }

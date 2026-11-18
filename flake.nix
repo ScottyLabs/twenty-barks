@@ -37,9 +37,15 @@
               react.enable = true;
             };
 
+            # The local OAuth relay, so Andrew ID login works on localhost.
+            ricochet = {
+              enable = true;
+              appUrl = "http://localhost:4173";
+            };
+
             processes = {
               server = {
-                run = "cd apps/server && PORT=3001 exec deno task dev";
+                run = "cd apps/server && PORT=3001 exec secretspec run -P dev -- deno task dev";
                 depends = [ "postgres-setup" ];
               };
               web.run = "cd apps/web && deno task dev";

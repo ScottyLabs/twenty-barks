@@ -170,7 +170,7 @@ export function moodFor(verdict: Verdict): Mood {
 }
 
 /** Green, red, and yellow squares, and a bone for the right guess. Escaped, since the repository keeps source ASCII. */
-const SQUARES: Readonly<Record<Verdict, string>> = {
+export const SQUARES: Readonly<Record<Verdict, string>> = {
   yes: "\u{1F7E9}",
   no: "\u{1F7E5}",
   sortof: "\u{1F7E8}",

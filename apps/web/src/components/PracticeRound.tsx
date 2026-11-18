@@ -15,62 +15,14 @@ import {
   SUGGESTIONS,
   type Answer,
   type Round,
-  type Turn,
-  type Verdict,
 } from "../practice.ts";
 import { AskForm } from "./AskForm.tsx";
 import { BarkDog } from "./BarkDog.tsx";
 import { Bones } from "./Bones.tsx";
-
-const VERDICT_LABEL: Readonly<Record<Verdict, string>> = {
-  yes: "Yes",
-  no: "No",
-  sortof: "Sort of",
-  correct: "You got it",
-};
+import { Bubble, HELLO, Log, type Speech, THINKING } from "./RoundParts.tsx";
 
 const UNSURE =
   "Hmm, I can only answer yes or no, and practice Bark only knows a few things. Try asking whether it's a place, or what people do with it.";
-
-/** What Bark is saying: an answer with its verdict, or a plain line. */
-interface Speech {
-  readonly verdict: Verdict | null;
-  readonly text: string;
-}
-
-const HELLO: Speech = { verdict: null, text: "I'm thinking of something at CMU. Ask me anything!" };
-
-function Bubble({ speech }: { readonly speech: Speech }) {
-  return (
-    <div className="bubble" aria-live="polite">
-      {speech.verdict !== null && (
-        <span className={`verdict verdict--${speech.verdict}`}>
-          {VERDICT_LABEL[speech.verdict]}
-        </span>
-      )}
-      <p>{speech.text}</p>
-    </div>
-  );
-}
-
-function Log({ turns }: { readonly turns: readonly Turn[] }) {
-  if (turns.length === 0) {
-    return null;
-  }
-  return (
-    <ol className="log" aria-label="Your questions so far">
-      {turns.map((turn, i) => (
-        <li key={turn.answer.topic}>
-          <span className="log__n">{i + 1}</span>
-          <span className="log__q">{turn.asked}</span>
-          <span className={`verdict verdict--${turn.answer.verdict}`}>
-            {VERDICT_LABEL[turn.answer.verdict]}
-          </span>
-        </li>
-      ))}
-    </ol>
-  );
-}
 
 function Won({ round, onReset }: { readonly round: Round; readonly onReset: () => void }) {
   const [copied, setCopied] = useState(false);
@@ -109,8 +61,6 @@ interface Step {
   readonly speech: Speech;
   readonly mood: Mood;
 }
-
-const THINKING: Speech = { verdict: null, text: "Hmm, let me sniff that out..." };
 
 /** The next step once an answer is known, from the judge or the page's own rules. */
 function settle(round: Round, asked: string, answer: Answer): Step {
@@ -192,7 +142,13 @@ export function PracticeRound() {
           onAsk={onAsk}
         />
       )}
-      <Log turns={round.turns} />
+      <Log
+        rows={round.turns.map((turn) => ({
+          key: turn.answer.topic,
+          asked: turn.asked,
+          verdict: turn.answer.verdict,
+        }))}
+      />
       <Bones left={questionsLeft(round)} />
     </section>
   );
