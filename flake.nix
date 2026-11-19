@@ -70,6 +70,7 @@
                 compile = true;
               };
               env.STATIC_DIR = "${web}";
+              customDomain = "twentybarks.scottylabs.org";
             };
         };
     };

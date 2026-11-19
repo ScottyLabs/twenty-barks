@@ -105,7 +105,7 @@ The git hooks run the tests, type checks, oxlint, and the formatter on every com
 
 ## Deployment
 
-Kennel deploys `main`, `staging`, and every pull request. A pull request is served at `twenty-barks-app-pr-<number>.scottylabs.net` once nixbot has built it.
+Kennel deploys `main`, `staging`, and every pull request. Production (`main`) is served at <https://twentybarks.scottylabs.org>, and a pull request at `twenty-barks-app-pr-<number>.scottylabs.net` once nixbot has built it.
 
 ## License
 
