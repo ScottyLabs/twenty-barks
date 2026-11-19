@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Judge } from "./jev.ts";
-import { campusDay, statsOf } from "./game.ts";
+import { campusDay, standingOf, statsOf } from "./game.ts";
 import { at, fakeOidc, odds, signIn, testApp } from "./testing.ts";
 
 const FENCE = {
@@ -138,4 +138,29 @@ await test("a signed-in player's theme is saved to their account", async () => {
   assert.equal(await themeOf(), "dark");
   assert.equal((await put("purple")).status, 400);
   assert.equal((await put("light", "")).status, 401);
+});
+
+await test("a standing counts the other players who did worse", () => {
+  const standing = standingOf([3, 5, 5, 21], 5);
+  assert.equal(standing.players, 4);
+  assert.equal(standing.betterThan, 33);
+  assert.equal(standing.counts[4], 2);
+  assert.equal(standing.counts[20], 1);
+  assert.equal(standingOf([4], 4).betterThan, null);
+});
+
+await test("the standing is shown only once the game is over", async () => {
+  const { app } = await withPuzzle();
+  const ask = async (question: string, gameId?: unknown) =>
+    json(await app.request("/api/today/ask", post("", { question, gameId })));
+  const first = at(await ask("is it red?"), "game", "id");
+  await ask("is it the fence?", first);
+  const second = at(await ask("is it red?"), "game", "id");
+  const early = await app.request(`/api/today/standing?game=${String(second)}`);
+  assert.equal(early.status, 404);
+  await ask("is it the fence?", second);
+  const tied = await json(await app.request(`/api/today/standing?game=${String(first)}`));
+  assert.equal(tied.players, 2);
+  assert.equal(tied.betterThan, 0);
+  assert.equal(tied.score, 2);
 });

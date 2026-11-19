@@ -1,45 +1,14 @@
 import { useState } from "react";
 
-function Suggestions({
-  suggestions,
-  onAsk,
-}: {
-  readonly suggestions: readonly string[];
-  readonly onAsk: (question: string) => void;
-}) {
-  if (suggestions.length === 0) {
-    return null;
-  }
-  return (
-    <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
-      <span className="text-muted">Try:</span>
-      {suggestions.map((suggestion) => (
-        <button
-          key={suggestion}
-          type="button"
-          className="pill pill--small"
-          onClick={() => {
-            onAsk(suggestion);
-          }}
-        >
-          {suggestion}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-/** A free-text question box, with a few starter questions for anyone stuck. */
+/** A free-text question box. */
 export function AskForm({
   maxLength,
   busy,
-  suggestions,
   onAsk,
 }: {
   readonly maxLength: number;
   /** Waiting on an answer: typing goes on, asking waits. */
   readonly busy: boolean;
-  readonly suggestions: readonly string[];
   readonly onAsk: (question: string) => void;
 }) {
   const [text, setText] = useState("");
@@ -75,7 +44,6 @@ export function AskForm({
           {busy ? "..." : "Ask"}
         </button>
       </form>
-      <Suggestions suggestions={busy ? [] : suggestions} onAsk={onAsk} />
     </div>
   );
 }

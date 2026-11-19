@@ -103,3 +103,40 @@ export function statsOf(history: readonly HistoryRow[], today: string): Stats {
     bestStreak: best,
   };
 }
+
+/** Where a finished game sits among everyone's that day. */
+export interface Standing {
+  /** Finished games today, this one included. */
+  readonly players: number;
+  /** Percent of the other players who did worse, or null when nobody else has finished. */
+  readonly betterThan: number | null;
+  /** This game's score: questions used to win, or LOST_SCORE. */
+  readonly score: number;
+  /** How many games ended on each score, from 1 question up to LOST_SCORE. */
+  readonly counts: readonly number[];
+}
+
+/** A loss scores one more than the most questions a win can take. */
+export const LOST_SCORE = QUESTION_LIMIT + 1;
+
+export function scoreOf(game: {
+  readonly won: boolean;
+  readonly turns: readonly unknown[];
+}): number {
+  return game.won ? game.turns.length : LOST_SCORE;
+}
+
+export function standingOf(scores: readonly number[], score: number): Standing {
+  const counts = Array.from(
+    { length: LOST_SCORE },
+    (_, index) => scores.filter((each) => each === index + 1).length,
+  );
+  const others = scores.length - 1;
+  const worse = scores.filter((each) => each > score).length;
+  return {
+    players: scores.length,
+    betterThan: others <= 0 ? null : Math.round((100 * worse) / others),
+    score,
+    counts,
+  };
+}

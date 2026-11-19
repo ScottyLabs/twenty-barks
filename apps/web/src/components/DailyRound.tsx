@@ -12,6 +12,7 @@ import { AskForm } from "./AskForm.tsx";
 import { BarkDog } from "./BarkDog.tsx";
 import { Bones } from "./Bones.tsx";
 import { Bubble, HELLO, Log, type Speech, THINKING } from "./RoundParts.tsx";
+import { StandingCard } from "./Standing.tsx";
 
 /** Where a game played without signing in is remembered, so a reload picks it up. The server ignores it once the day is over. */
 const CARRIED = "twenty-barks:game";
@@ -66,6 +67,7 @@ function Done({ game, signedIn }: { readonly game: GameView; readonly signedIn: 
           </a>
         )}
       </div>
+      <StandingCard gameId={game.id} />
       <p className="text-sm text-muted">Come back tomorrow for a new one.</p>
     </div>
   );
@@ -164,7 +166,7 @@ export function DailyRound({
       {game?.finished === true ? (
         <Done game={game} signedIn={signedIn} />
       ) : (
-        <AskForm maxLength={MAX_QUESTION_LENGTH} busy={thinking} suggestions={[]} onAsk={onAsk} />
+        <AskForm maxLength={MAX_QUESTION_LENGTH} busy={thinking} onAsk={onAsk} />
       )}
       <Log
         rows={turns.map((turn) => ({

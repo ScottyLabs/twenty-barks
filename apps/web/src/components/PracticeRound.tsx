@@ -14,7 +14,6 @@ import {
   questionsLeft,
   savePractice,
   shareText,
-  SUGGESTIONS,
   type Answer,
   type Round,
 } from "../practice.ts";
@@ -143,12 +142,7 @@ export function PracticeRound() {
       {isOver(round) ? (
         <Won round={round} onReset={onReset} />
       ) : (
-        <AskForm
-          maxLength={MAX_QUESTION_LENGTH}
-          busy={thinking}
-          suggestions={round.turns.length === 0 ? SUGGESTIONS : []}
-          onAsk={onAsk}
-        />
+        <AskForm maxLength={MAX_QUESTION_LENGTH} busy={thinking} onAsk={onAsk} />
       )}
       <Log
         rows={round.turns.map((turn) => ({

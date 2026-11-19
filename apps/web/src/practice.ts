@@ -95,14 +95,6 @@ const OPEN_QUESTION = /^(what|what's|whats|where|when|who|whose|why|how|which)\b
 /** A guess at some other thing, like "Is it the Cut?". */
 const GUESS = /^(?:is it|it'?s|is this|it is) the ([a-z0-9' -]{2,40}?)\s*[?!.]*$/u;
 
-/** Suggestions for anyone stuck on what to ask first. */
-export const SUGGESTIONS: readonly string[] = [
-  "Is it a place?",
-  "Can you eat it?",
-  "Do people paint it?",
-  "Does it look the same every day?",
-];
-
 export function normalize(text: string): string {
   return text.toLowerCase().replaceAll(/\s+/gu, " ").trim();
 }

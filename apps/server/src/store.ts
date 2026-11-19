@@ -214,6 +214,16 @@ export class Store {
     );
   }
 
+  /** Each finished game's score on a day: questions used to win, or one more than the limit for a loss. */
+  async dayScores(day: string, lost: number): Promise<number[]> {
+    const rows = await this.db.query<{ score: number }>(
+      `select case when won then jsonb_array_length(turns) else $2 end::int as score
+       from games where day = $1 and finished_at is not null`,
+      [day, lost],
+    );
+    return rows.map((row) => row.score);
+  }
+
   /** A player's finished games, newest first, with each day's answer now that it is over. */
   history(userId: number): Promise<HistoryRow[]> {
     return this.db.query<HistoryRow>(

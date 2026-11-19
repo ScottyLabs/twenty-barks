@@ -26,7 +26,7 @@ twenty-barks/
 │       ├── index.html       # Also picks light or dark before the first paint
 │       └── src/
 │           ├── App.tsx      # Page layout and routes: /, /scores, /admin
-│           ├── components/  # Header, account menu, theme toggle, Bark, the daily and practice rounds
+│           ├── components/  # Header, account menu, theme toggle, Bark, the rounds, and the end-of-game curve
 │           ├── pages/       # Scores, and the admin page (schedule, editor, Draft with AI)
 │           ├── bark/        # Bark's drawing and animations
 │           ├── server.ts    # Calls to the API, with every response checked before use
@@ -36,7 +36,7 @@ twenty-barks/
 └── secretspec.toml          # Environment variables, resolved from OpenBao
 ```
 
-**Answering questions.** Each question goes to the server, which asks [Jev](https://docs.typesafe.ai) (through the ScottyLabs AI gateway) how to answer it against the day's fact sheet. The fact sheet never leaves the server, and the answer is only revealed once a game is over. A guess wins only when the question names the answer and Jev reads it as a guess. When Jev is unsure, Bark says so and the question does not use up a bone. With no puzzle scheduled for the day, the home page falls back to a practice round about the Fence.
+**Answering questions.** Each question goes to the server, which asks [Jev](https://docs.typesafe.ai) (through the ScottyLabs AI gateway) how to answer it against the day's fact sheet. The fact sheet never leaves the server, and the answer is only revealed once a game is over. A guess wins only when the question names the answer and Jev reads it as a guess. When Jev is unsure, Bark says so and the question does not use up a bone. When a game ends, a curve shows how many questions everyone who finished that day took, and what share of them you beat. With no puzzle scheduled for the day, the home page falls back to a practice round about the Fence.
 
 **Accounts.** Anyone can play without signing in, and a game in progress survives a reload. Signing in with an Andrew ID saves games, scores, and a streak of days solved in a row; a game started before signing in carries over. The sun or moon in the header switches between light and dark mode, and for signed-in players the choice is saved to their account.
 

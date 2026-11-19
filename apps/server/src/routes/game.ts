@@ -1,7 +1,7 @@
 import type { Hono } from "hono";
 import { MAX_QUESTION_LENGTH } from "../ask.ts";
 import { type AppContext, type AppEnv, jsonBody, stringField } from "../context.ts";
-import { campusDay, play, statsOf, viewOf } from "../game.ts";
+import { campusDay, LOST_SCORE, play, scoreOf, standingOf, statsOf, viewOf } from "../game.ts";
 import type { Judge } from "../jev.ts";
 import type { RateLimit } from "../limit.ts";
 import type { Game, Puzzle, Store, User } from "../store.ts";
@@ -102,6 +102,20 @@ export function addGame(app: Hono<AppEnv>, options: GameOptions): void {
   });
 
   addAsk(app, options);
+
+  // How a finished game compares with everyone else's today. Only for the game's own player, once it is over.
+  app.get("/api/today/standing", async (c) => {
+    const puzzle = await today(options);
+    const game =
+      puzzle === null
+        ? null
+        : await currentGame(options.store, c.get("user"), puzzle.day, c.req.query("game") ?? null);
+    if (game === null || !game.finished) {
+      return c.json({ error: "Finish today's game first" }, 404);
+    }
+    const scores = await options.store.dayScores(game.day, LOST_SCORE);
+    return c.json(standingOf(scores, scoreOf(game)));
+  });
 
   app.get("/api/me/scores", async (c) => {
     const user = c.get("user");

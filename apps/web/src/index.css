@@ -497,3 +497,48 @@ body {
   border-color: var(--color-ink);
   transform: rotate(-12deg);
 }
+
+/* The bell curve at the end of a game. */
+.standing {
+  display: flex;
+  width: 100%;
+  max-width: 24rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+}
+.standing__curve {
+  width: 100%;
+  overflow: visible;
+}
+.standing__area {
+  fill: var(--color-wash);
+}
+.standing__line {
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.standing__axis {
+  stroke: var(--color-line);
+}
+.standing__marker {
+  stroke: var(--color-ink);
+  stroke-dasharray: 3 3;
+}
+.standing__dot {
+  fill: var(--color-ink);
+  stroke: var(--color-paper);
+  stroke-width: 2;
+}
+.standing__label {
+  fill: var(--color-muted);
+  font-size: 10px;
+}
+.standing__you {
+  fill: var(--color-ink);
+  font-size: 10px;
+  font-weight: 700;
+}
