@@ -20,14 +20,7 @@ function Account({
       </a>
     ) : null;
   }
-  return (
-    <AccountMenu
-      name={me.user.name}
-      admin={me.user.admin}
-      theme={me.user.theme}
-      onChange={onChange}
-    />
-  );
+  return <AccountMenu name={me.user.name} admin={me.user.admin} onChange={onChange} />;
 }
 
 export function Header({

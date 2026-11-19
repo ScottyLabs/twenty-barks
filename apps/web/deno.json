@@ -21,6 +21,7 @@
     "dev": "vite --port 4173 --host",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "deno check src vite.config.ts"
+    "check": "deno check src vite.config.ts",
+    "test": "deno test -A src"
   }
 }

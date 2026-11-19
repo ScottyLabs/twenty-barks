@@ -1,3 +1,4 @@
+import { saveTheme } from "../server.ts";
 import { flipLook, useLook } from "../theme.ts";
 
 function Moon() {
@@ -23,7 +24,12 @@ export function ThemeToggle() {
       className="icon-button"
       aria-label={`Switch to ${next} mode`}
       title={`Switch to ${next} mode`}
-      onClick={flipLook}
+      onClick={() => {
+        const saved = flipLook();
+        if (saved !== null) {
+          void saveTheme(saved);
+        }
+      }}
     >
       <svg
         viewBox="0 0 24 24"

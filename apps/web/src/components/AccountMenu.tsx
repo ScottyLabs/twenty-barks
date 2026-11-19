@@ -1,7 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Link } from "../router.tsx";
-import { logout, saveTheme } from "../server.ts";
-import { chooseDefault, type Theme, THEMES } from "../theme.ts";
+import { logout } from "../server.ts";
 
 /** "Welcome, Krish" reads better than a full name in the header. */
 function firstName(name: string): string {
@@ -45,47 +44,12 @@ function Chevron({ open }: { readonly open: boolean }) {
   );
 }
 
-const THEME_LABEL: Record<Theme, string> = { system: "System", light: "Light", dark: "Dark" };
-
-/** The look this account opens in on any device. The header moon still flips it for one visit. */
-function ThemePicker({
-  theme,
-  onChange,
-}: {
-  readonly theme: Theme;
-  readonly onChange: () => void;
-}) {
-  return (
-    <fieldset className="account__theme">
-      <legend className="account__label">Default theme</legend>
-      <div className="segmented">
-        {THEMES.map((option) => (
-          <button
-            key={option}
-            type="button"
-            className="segmented__option"
-            aria-pressed={option === theme}
-            onClick={() => {
-              chooseDefault(option);
-              void saveTheme(option).then(onChange);
-            }}
-          >
-            {THEME_LABEL[option]}
-          </button>
-        ))}
-      </div>
-    </fieldset>
-  );
-}
-
 function Items({
   admin,
-  theme,
   close,
   onChange,
 }: {
   readonly admin: boolean;
-  readonly theme: Theme;
   readonly close: () => void;
   readonly onChange: () => void;
 }) {
@@ -99,8 +63,6 @@ function Items({
           Admin
         </Link>
       )}
-      <hr className="account__rule" />
-      <ThemePicker theme={theme} onChange={onChange} />
       <hr className="account__rule" />
       <button
         type="button"
@@ -120,13 +82,11 @@ function Items({
 export function AccountMenu({
   name,
   admin,
-  theme,
   onChange,
 }: {
   readonly name: string;
   readonly admin: boolean;
-  readonly theme: Theme;
-  /** Runs after signing out or saving a theme, to fetch who is signed in again. */
+  /** Runs after signing out, to fetch who is signed in again. */
   readonly onChange: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -154,7 +114,7 @@ export function AccountMenu({
       </button>
       {open && (
         <div id={menuId} className="account__menu">
-          <Items admin={admin} theme={theme} close={close} onChange={onChange} />
+          <Items admin={admin} close={close} onChange={onChange} />
         </div>
       )}
     </div>

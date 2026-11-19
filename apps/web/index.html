@@ -20,18 +20,13 @@
       (function () {
         try {
           var account = localStorage.getItem("twenty-barks:account-theme");
-          var flipped =
-            account === null
-              ? localStorage.getItem("twenty-barks:look")
-              : sessionStorage.getItem("twenty-barks:visit-look");
+          var chosen = account === null ? localStorage.getItem("twenty-barks:look") : account;
           var look =
-            flipped === "light" || flipped === "dark"
-              ? flipped
-              : account === "light" || account === "dark"
-                ? account
-                : matchMedia("(prefers-color-scheme: dark)").matches
-                  ? "dark"
-                  : "light";
+            chosen === "light" || chosen === "dark"
+              ? chosen
+              : matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
           document.documentElement.dataset.theme = look;
         } catch (e) {}
       })();

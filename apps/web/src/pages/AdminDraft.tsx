@@ -105,32 +105,43 @@ function useDraft(onDraft: (drafted: Drafted) => void) {
 export function DraftPanel({ onDraft }: { readonly onDraft: (drafted: Drafted) => void }) {
   const d = useDraft(onDraft);
   return (
-    <section className="flex flex-col gap-3 text-left">
+    <section className="flex w-full flex-col gap-2 text-left">
       <h2 className="eyebrow">Draft with AI</h2>
-      <input
-        className="input"
-        value={d.thing}
-        placeholder="What should it be? Leave empty for a suggestion"
-        onChange={(event) => {
-          d.setThing(event.target.value);
+      <p className="text-sm text-muted">
+        Fills in the form below. Nothing is saved until you press Save.
+      </p>
+      <form
+        className="ask"
+        onSubmit={(event) => {
+          event.preventDefault();
+          d.run();
         }}
-      />
+      >
+        <input
+          className="ask__input"
+          value={d.thing}
+          aria-label="What should the puzzle be?"
+          placeholder="What should it be? Leave empty for a suggestion"
+          onChange={(event) => {
+            d.setThing(event.target.value);
+          }}
+        />
+        <button type="submit" className="pill pill--solid" disabled={d.busy}>
+          {d.busy ? "Drafting..." : "Draft"}
+        </button>
+      </form>
       <input
         className="input"
         value={d.notes}
+        aria-label="Notes for the AI"
         placeholder="Notes for the AI (optional), e.g. mention it moved in 2024"
         onChange={(event) => {
           d.setNotes(event.target.value);
         }}
       />
-      <div className="flex flex-wrap items-center gap-3">
-        <button type="button" className="pill pill--solid" disabled={d.busy} onClick={d.run}>
-          {d.busy ? "Drafting..." : "Draft with AI"}
-        </button>
-        <span className="text-sm text-muted" aria-live="polite">
-          {d.busy ? "Writing facts and trying questions, about 15 seconds." : d.error}
-        </span>
-      </div>
+      <p className="text-sm text-muted empty:hidden" aria-live="polite">
+        {d.busy ? "Writing facts and trying questions, about 15 seconds." : d.error}
+      </p>
       {d.result !== null && !d.busy && <Findings result={d.result} />}
     </section>
   );
