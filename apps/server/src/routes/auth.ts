@@ -4,9 +4,16 @@
 import { Buffer } from "node:buffer";
 import type { Hono } from "hono";
 import { deleteCookie, setCookie } from "hono/cookie";
-import { type AppEnv, isAdmin, readCookie, SESSION_COOKIE } from "../context.ts";
+import {
+  type AppEnv,
+  isAdmin,
+  jsonBody,
+  readCookie,
+  SESSION_COOKIE,
+  stringField,
+} from "../context.ts";
 import { type Oidc, randomNonce, randomState, randomVerifier } from "../oidc.ts";
-import type { Store } from "../store.ts";
+import { type Store, THEMES } from "../store.ts";
 
 export interface AuthOptions {
   readonly store: Store;
@@ -112,8 +119,24 @@ export function addAuth(app: Hono<AppEnv>, options: AuthOptions): void {
         name: user.name ?? user.username ?? "Player",
         username: user.username,
         admin: isAdmin(user, options.admins),
+        theme: user.theme,
       },
       loginAvailable: true,
     });
+  });
+
+  // The look a signed-in player gets by default on any device.
+  app.put("/api/me/theme", async (c) => {
+    const user = c.get("user");
+    if (user === null) {
+      return c.json({ error: "Sign in to save a theme" }, 401);
+    }
+    const said = stringField(await jsonBody(c), "theme");
+    const theme = THEMES.find((name) => name === said);
+    if (theme === undefined) {
+      return c.json({ error: "Pick system, light or dark" }, 400);
+    }
+    await options.store.setTheme(user.id, theme);
+    return c.json({ theme });
   });
 }

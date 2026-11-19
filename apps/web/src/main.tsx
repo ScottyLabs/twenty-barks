@@ -2,6 +2,9 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.tsx";
 import "./index.css";
+import { applyLook } from "./theme.ts";
+
+applyLook();
 
 const root = document.querySelector("#root");
 if (root === null) {

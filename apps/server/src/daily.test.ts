@@ -125,3 +125,17 @@ await test("streaks count days solved in a row, and survive until the day after"
   });
   assert.equal(statsOf(history, "2026-11-18").currentStreak, 0);
 });
+
+await test("a signed-in player's theme is saved to their account", async () => {
+  const { app } = await withPuzzle();
+  const cookie = await signIn(app);
+  const themeOf = async () =>
+    at(await json(await app.request("/api/me", { headers: { cookie } })), "user", "theme");
+  const put = (theme: string, who = cookie) =>
+    app.request("/api/me/theme", { ...post("", { theme }, who), method: "PUT" });
+  assert.equal(await themeOf(), "system");
+  assert.equal((await put("dark")).status, 200);
+  assert.equal(await themeOf(), "dark");
+  assert.equal((await put("purple")).status, 400);
+  assert.equal((await put("light", "")).status, 401);
+});

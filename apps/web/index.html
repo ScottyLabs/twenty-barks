@@ -13,8 +13,29 @@
       rel="stylesheet"
       href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap"
     />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <title>Twenty Barks</title>
+    <script>
+      // Pick light or dark before the first paint, by the same rules as src/theme.ts.
+      (function () {
+        try {
+          var account = localStorage.getItem("twenty-barks:account-theme");
+          var flipped =
+            account === null
+              ? localStorage.getItem("twenty-barks:look")
+              : sessionStorage.getItem("twenty-barks:visit-look");
+          var look =
+            flipped === "light" || flipped === "dark"
+              ? flipped
+              : account === "light" || account === "dark"
+                ? account
+                : matchMedia("(prefers-color-scheme: dark)").matches
+                  ? "dark"
+                  : "light";
+          document.documentElement.dataset.theme = look;
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

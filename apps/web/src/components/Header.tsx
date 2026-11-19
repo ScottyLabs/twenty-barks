@@ -2,6 +2,7 @@ import { Link } from "../router.tsx";
 import { loginHref, type Me } from "../server.ts";
 import { AccountMenu } from "./AccountMenu.tsx";
 import { Mark } from "./Mark.tsx";
+import { ThemeToggle } from "./ThemeToggle.tsx";
 
 function Account({
   me,
@@ -19,7 +20,14 @@ function Account({
       </a>
     ) : null;
   }
-  return <AccountMenu name={me.user.name} admin={me.user.admin} onSignedOut={onChange} />;
+  return (
+    <AccountMenu
+      name={me.user.name}
+      admin={me.user.admin}
+      theme={me.user.theme}
+      onChange={onChange}
+    />
+  );
 }
 
 export function Header({
@@ -36,11 +44,10 @@ export function Header({
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-8">
         <Link to="/" className="flex items-center gap-2 font-medium">
           <Mark className="h-6 w-7" />
-          <span>
-            Twenty <span className="gradient-text font-bold">Barks</span>
-          </span>
+          ScottyLabs
         </Link>
-        <nav className="flex items-center gap-3 text-sm sm:gap-4" aria-label="Account">
+        <nav className="flex items-center gap-2 text-sm sm:gap-3" aria-label="Account">
+          <ThemeToggle />
           {me !== null && <Account me={me} path={path} onChange={onChange} />}
         </nav>
       </div>

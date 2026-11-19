@@ -2,7 +2,7 @@
 import * as client from "openid-client";
 import type { User } from "./store.ts";
 
-export type Claims = Omit<User, "id">;
+export type Claims = Omit<User, "id" | "theme">;
 
 /** The parts of OpenID Connect the app uses, so tests can stand in for Keycloak. */
 export interface Oidc {

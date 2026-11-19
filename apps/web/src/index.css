@@ -9,6 +9,20 @@
   --color-ink: #0a0a0b;
   --color-muted: #5d5d66;
   --color-line: #e7e7ec;
+  --color-faint: #a1a1aa;
+  --color-wash: #f4f4f5;
+  --color-card: rgb(255 255 255 / 0.85);
+  --color-shadow: rgb(15 23 42 / 0.25);
+  --color-ring: rgb(79 108 240 / 0.18);
+  --color-yes-bg: #dcfce7;
+  --color-yes: #166534;
+  --color-no-bg: #ffe4e6;
+  --color-no: #be123c;
+  --color-sortof-bg: #fef3c7;
+  --color-sortof: #92400e;
+  --color-unsure: #52525b;
+  --color-check-line: #fcd34d;
+  --color-check-bg: #fffbeb;
   --font-sans: "Satoshi", system-ui, "Avenir", "Helvetica", "Arial", sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "Menlo", monospace;
 }
@@ -16,6 +30,35 @@
 html {
   color-scheme: light;
   scroll-behavior: smooth;
+}
+
+/* Dark mode: the same ink on paper, turned over. Set on <html> by src/theme.ts, and by index.html before the first paint. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-paper: #0c0c10;
+  --color-ink: #f2f2f5;
+  --color-muted: #a3a3ad;
+  --color-line: #2a2a32;
+  --color-faint: #6b6b76;
+  --color-wash: #1c1c22;
+  --color-card: rgb(22 22 28 / 0.85);
+  --color-shadow: rgb(0 0 0 / 0.6);
+  --color-ring: rgb(129 150 255 / 0.3);
+  --color-yes-bg: rgb(34 197 94 / 0.16);
+  --color-yes: #86efac;
+  --color-no-bg: rgb(244 63 94 / 0.18);
+  --color-no: #fda4af;
+  --color-sortof-bg: rgb(245 158 11 / 0.16);
+  --color-sortof: #fcd34d;
+  --color-unsure: #c4c4cc;
+  --color-check-line: #a16207;
+  --color-check-bg: rgb(245 158 11 / 0.08);
+}
+
+body {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 body {
@@ -78,8 +121,8 @@ body {
   padding: 1.5rem 1rem 1.75rem;
   border: 1px solid var(--color-line);
   border-radius: 2rem;
-  background: rgb(255 255 255 / 0.85);
-  box-shadow: 0 20px 60px -30px rgb(15 23 42 / 0.25);
+  background: var(--color-card);
+  box-shadow: 0 20px 60px -30px var(--color-shadow);
   backdrop-filter: blur(8px);
 }
 
@@ -165,16 +208,16 @@ body {
   text-transform: uppercase;
 }
 .verdict--yes {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-yes-bg);
+  color: var(--color-yes);
 }
 .verdict--no {
-  background: #ffe4e6;
-  color: #be123c;
+  background: var(--color-no-bg);
+  color: var(--color-no);
 }
 .verdict--sortof {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-sortof-bg);
+  color: var(--color-sortof);
 }
 .verdict--correct {
   background: linear-gradient(95deg, #38bdf8, #9b45c9, #f43f5e);
@@ -203,7 +246,7 @@ body {
 }
 .pill:disabled {
   border-color: var(--color-line);
-  color: #a1a1aa;
+  color: var(--color-faint);
   text-decoration: line-through;
   cursor: default;
 }
@@ -236,7 +279,7 @@ body {
   transition: box-shadow 0.15s ease;
 }
 .ask:focus-within {
-  box-shadow: 0 0 0 4px rgb(79 108 240 / 0.18);
+  box-shadow: 0 0 0 4px var(--color-ring);
 }
 .ask__input {
   min-width: 0;
@@ -247,7 +290,7 @@ body {
   outline: none;
 }
 .ask__input::placeholder {
-  color: #a1a1aa;
+  color: var(--color-faint);
 }
 
 /* Every question so far, newest last, with Bark's verdict. */
@@ -342,7 +385,7 @@ body {
 .input:focus {
   border-color: var(--color-ink);
   outline: none;
-  box-shadow: 0 0 0 4px rgb(79 108 240 / 0.18);
+  box-shadow: 0 0 0 4px var(--color-ring);
 }
 .admin-row {
   display: flex;
@@ -360,13 +403,13 @@ body {
 /* Facts the AI was not sure of, for an admin to verify. */
 .check {
   padding: 0.75rem 1rem;
-  border: 1.5px solid #fcd34d;
+  border: 1.5px solid var(--color-check-line);
   border-radius: 0.9rem;
-  background: #fffbeb;
+  background: var(--color-check-bg);
 }
 .verdict--unsure {
-  background: #f4f4f5;
-  color: #52525b;
+  background: var(--color-wash);
+  color: var(--color-unsure);
 }
 
 /* The signed-in greeting, which opens onto the account links. */
@@ -415,7 +458,7 @@ body {
   border: 1px solid var(--color-line);
   border-radius: 1rem;
   background: var(--color-paper);
-  box-shadow: 0 16px 40px -20px rgb(15 23 42 / 0.35);
+  box-shadow: 0 16px 40px -20px var(--color-shadow);
   animation: pop 0.18s ease-out;
 }
 .account__item {
@@ -428,10 +471,70 @@ body {
 }
 .account__item:hover,
 .account__item:focus-visible {
-  background: #f4f4f5;
+  background: var(--color-wash);
   outline: none;
 }
 .account__rule {
   margin: 0.3rem 0.4rem;
   border-color: var(--color-line);
+}
+
+/* The moon (or sun) beside the account menu. */
+.icon-button {
+  display: grid;
+  width: 2.1rem;
+  height: 2.1rem;
+  place-items: center;
+  border: 1.5px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+.icon-button:hover {
+  border-color: var(--color-ink);
+  transform: rotate(-12deg);
+}
+
+/* Default theme, inside the account menu. */
+.account__theme {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem 0.5rem;
+}
+.account__label {
+  padding: 0;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.segmented {
+  display: flex;
+  padding: 0.2rem;
+  border-radius: 999px;
+  background: var(--color-wash);
+}
+.segmented__option {
+  flex: 1;
+  padding: 0.3rem 0.5rem;
+  border-radius: 999px;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.segmented__option:hover {
+  color: var(--color-ink);
+}
+.segmented__option[aria-pressed="true"] {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  box-shadow: 0 1px 4px var(--color-shadow);
 }

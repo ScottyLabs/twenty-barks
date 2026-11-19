@@ -57,6 +57,8 @@ const MIGRATIONS: readonly string[] = [
      created_at timestamptz not null default now()
    );
    create unique index games_one_per_user_per_day on games (user_id, day) where user_id is not null;`,
+  `alter table users add column theme text not null default 'system'
+     check (theme in ('system', 'light', 'dark'));`,
 ];
 
 export async function migrate(db: Db): Promise<void> {

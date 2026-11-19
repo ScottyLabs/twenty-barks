@@ -6,6 +6,7 @@ import { AdminPage } from "./pages/Admin.tsx";
 import { ScoresPage } from "./pages/Scores.tsx";
 import { usePath } from "./router.tsx";
 import { fetchMe, fetchToday, type Me, type Today } from "./server.ts";
+import { rememberAccount } from "./theme.ts";
 
 const STEPS = [
   {
@@ -84,6 +85,10 @@ function useSession() {
   const [today, setToday] = useState<Today | null>(null);
   const refresh = useCallback(() => {
     void fetchMe()
+      .then((found) => {
+        rememberAccount(found.user?.theme ?? null);
+        return found;
+      })
       .catch(() => ({ user: null, loginAvailable: false }))
       .then(setMe);
     void fetchToday(carriedGame())
@@ -143,7 +148,8 @@ export function App() {
       </main>
       <footer className="hairline-t">
         <p className="mx-auto max-w-5xl px-4 py-6 text-sm text-muted sm:px-8">
-          Made with treats by <a href="https://scottylabs.org">ScottyLabs</a>.
+          Made with treats and {"\u2764\uFE0F"} by Krish Saxena at{" "}
+          <a href="https://scottylabs.org">ScottyLabs</a>
         </p>
       </footer>
     </div>

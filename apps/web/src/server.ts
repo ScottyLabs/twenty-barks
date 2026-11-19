@@ -1,3 +1,4 @@
+import { type Theme, themeOf } from "./theme.ts";
 import type { Verdict } from "./practice.ts";
 
 /* Small readers for parsed JSON, so nothing from the network is trusted by assertion. */
@@ -18,7 +19,11 @@ const verdictOf = (value: unknown): Verdict | null =>
   VERDICTS.find((verdict) => verdict === value) ?? null;
 
 export interface Me {
-  readonly user: { readonly name: string; readonly admin: boolean } | null;
+  readonly user: {
+    readonly name: string;
+    readonly admin: boolean;
+    readonly theme: Theme;
+  } | null;
   readonly loginAvailable: boolean;
 }
 
@@ -115,7 +120,11 @@ export async function fetchMe(): Promise<Me> {
     user:
       user === null || user === undefined
         ? null
-        : { name: str(at(user, "name")) ?? "Player", admin: at(user, "admin") === true },
+        : {
+            name: str(at(user, "name")) ?? "Player",
+            admin: at(user, "admin") === true,
+            theme: themeOf(at(user, "theme")),
+          },
     loginAvailable: at(body, "loginAvailable") === true,
   };
 }
@@ -136,6 +145,12 @@ export function loginHref(returnTo: string): string {
 
 export async function logout(): Promise<void> {
   await sendJson("/api/auth/logout", "POST");
+}
+
+/** Saves the signed-in player's default look to their account. */
+export async function saveTheme(theme: Theme): Promise<boolean> {
+  const { status } = await sendJson("/api/me/theme", "PUT", { theme });
+  return status === 200;
 }
 
 export async function fetchScores(): Promise<unknown> {

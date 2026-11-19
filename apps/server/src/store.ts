@@ -2,12 +2,17 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { Db } from "./db.ts";
 import type { Verdict } from "./ask.ts";
 
+/** How a signed-in player wants the site to look; "system" follows their device. */
+export type Theme = "system" | "light" | "dark";
+export const THEMES: readonly Theme[] = ["system", "light", "dark"];
+
 export interface User {
   readonly id: number;
   readonly sub: string;
   readonly username: string | null;
   readonly name: string | null;
   readonly email: string | null;
+  readonly theme: Theme;
 }
 
 export interface Puzzle {
@@ -71,11 +76,11 @@ function toGame(row: GameRow): Game {
 export class Store {
   constructor(private readonly db: Db) {}
 
-  async upsertUser(claims: Omit<User, "id">): Promise<User> {
+  async upsertUser(claims: Omit<User, "id" | "theme">): Promise<User> {
     const [user] = await this.db.query<User>(
       `insert into users (sub, username, name, email) values ($1, $2, $3, $4)
        on conflict (sub) do update set username = $2, name = $3, email = $4
-       returning id, sub, username, name, email`,
+       returning id, sub, username, name, email, theme`,
       [claims.sub, claims.username, claims.name, claims.email],
     );
     if (user === undefined) {
@@ -130,11 +135,15 @@ export class Store {
 
   async sessionUser(token: string): Promise<User | null> {
     const [user] = await this.db.query<User>(
-      `select u.id, u.sub, u.username, u.name, u.email from sessions s join users u on u.id = s.user_id
+      `select u.id, u.sub, u.username, u.name, u.email, u.theme from sessions s join users u on u.id = s.user_id
        where s.token_hash = $1 and s.expires_at > now()`,
       [hash(token)],
     );
     return user ?? null;
+  }
+
+  async setTheme(userId: number, theme: Theme): Promise<void> {
+    await this.db.query("update users set theme = $2 where id = $1", [userId, theme]);
   }
 
   async deleteSession(token: string): Promise<void> {
