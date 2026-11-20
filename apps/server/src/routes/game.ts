@@ -5,12 +5,14 @@ import { campusDay, LOST_SCORE, play, scoreOf, standingOf, statsOf, viewOf } fro
 import type { Judge } from "../jev.ts";
 import type { RateLimit } from "../limit.ts";
 import type { Game, Puzzle, Store, User } from "../store.ts";
+import { eventsFor, type Track } from "../track.ts";
 
 export interface GameOptions {
   readonly store: Store;
   readonly judge: Judge | null;
   readonly limit: RateLimit;
   readonly now: () => Date;
+  readonly track: Track;
 }
 
 /** Behind Kennel's proxy the client is the first forwarded address. */
@@ -73,6 +75,9 @@ function addAsk(app: Hono<AppEnv>, options: GameOptions): void {
       const played = await play(game, puzzle, question, judge);
       if (played.counted) {
         await store.saveGame(played.game);
+        for (const event of eventsFor(played.game, Date.now())) {
+          options.track(played.game.id, event);
+        }
       }
       return c.json({ ...played.reply, game: viewOf(played.game, puzzle) });
     } catch (error) {

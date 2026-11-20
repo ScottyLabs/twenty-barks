@@ -11,6 +11,7 @@ import { addGame, clientOf } from "./routes/game.ts";
 import { PRACTICE } from "./secret.ts";
 import { serveWebApp } from "./static.ts";
 import type { Store } from "./store.ts";
+import { noTracking, type Track } from "./track.ts";
 
 export interface AppOptions {
   /** Directory holding the built web app, or null to serve only the API. */
@@ -31,6 +32,8 @@ export interface AppOptions {
   readonly admins?: ReadonlySet<string>;
   /** PostHog settings for counting page views, or null to count nothing. */
   readonly analytics?: Analytics | null;
+  /** Where game events go; nowhere by default. */
+  readonly track?: Track;
   /** Questions allowed per client per minute. */
   readonly questionsPerMinute?: number;
   readonly now?: () => Date;
@@ -92,7 +95,13 @@ export function createApp(options: AppOptions): Hono<AppEnv> {
     analytics: options.analytics ?? null,
   });
   addPractice(app, judge, limit);
-  addGame(app, { store, judge, limit, now: options.now ?? (() => new Date()) });
+  addGame(app, {
+    store,
+    judge,
+    limit,
+    now: options.now ?? (() => new Date()),
+    track: options.track ?? noTracking,
+  });
   addAdmin(app, { store, judge, drafter: options.drafter ?? null, admins });
 
   app.all("/api/*", (c) => c.json({ error: "Not found" }, 404));

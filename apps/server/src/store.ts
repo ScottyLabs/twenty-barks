@@ -36,6 +36,8 @@ export interface Game {
   readonly turns: readonly Turn[];
   readonly won: boolean;
   readonly finished: boolean;
+  /** When the game began, in milliseconds since the epoch. */
+  readonly startedMs: number;
 }
 
 export interface LoginState {
@@ -57,9 +59,11 @@ interface GameRow {
   turns: Turn[];
   won: boolean;
   finished_at: string | null;
+  started_ms: number;
 }
 
-const GAME_COLUMNS = "id::text, day::text, user_id, turns, won, finished_at::text";
+const GAME_COLUMNS =
+  "id::text, day::text, user_id, turns, won, finished_at::text, (extract(epoch from created_at) * 1000)::float8 as started_ms";
 
 function toGame(row: GameRow): Game {
   return {
@@ -69,6 +73,7 @@ function toGame(row: GameRow): Game {
     turns: row.turns,
     won: row.won,
     finished: row.finished_at !== null,
+    startedMs: row.started_ms,
   };
 }
 

@@ -8,6 +8,7 @@ import { gatewayDrafter } from "./draft.ts";
 import { jevJudge } from "./jev.ts";
 import { keycloak } from "./oidc.ts";
 import { Store } from "./store.ts";
+import { noTracking, posthogTracker } from "./track.ts";
 
 // Node APIs rather than the Deno namespace, since the type-aware linter cannot see Deno's global types. Deno runs them natively.
 function readEnv(name: string): string | null {
@@ -50,6 +51,7 @@ if (oidc === null) {
 
 // Only production has a PostHog key, so previews and local runs count nothing.
 const posthogKey = readEnv("POSTHOG_KEY");
+const posthogHost = readEnv("POSTHOG_HOST") ?? "https://us.i.posthog.com";
 
 const app = createApp({
   staticDir: readEnv("STATIC_DIR"),
@@ -68,10 +70,8 @@ const app = createApp({
   appUrl: readEnv("APP_URL") ?? "http://localhost:4173",
   relayUrl: readEnv("OAUTH_RELAY_URL"),
   admins: parseAdmins(readEnv("ADMIN_USERS")),
-  analytics:
-    posthogKey === null
-      ? null
-      : { key: posthogKey, host: readEnv("POSTHOG_HOST") ?? "https://us.i.posthog.com" },
+  analytics: posthogKey === null ? null : { key: posthogKey, host: posthogHost },
+  track: posthogKey === null ? noTracking : posthogTracker(posthogKey, posthogHost),
 });
 
 const quiet = readEnv("LOG_LEVEL") === "error";
