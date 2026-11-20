@@ -15,6 +15,12 @@ import {
 import { type Oidc, randomNonce, randomState, randomVerifier } from "../oidc.ts";
 import { type Store, THEMES } from "../store.ts";
 
+/** Where the page sends page views, or null to send none. */
+export interface Analytics {
+  readonly key: string;
+  readonly host: string;
+}
+
 export interface AuthOptions {
   readonly store: Store;
   readonly oidc: Oidc | null;
@@ -22,6 +28,7 @@ export interface AuthOptions {
   readonly appUrl: string;
   readonly relayUrl: string | null;
   readonly admins: ReadonlySet<string>;
+  readonly analytics: Analytics | null;
 }
 
 const SESSION_SECONDS = 30 * 24 * 60 * 60;
@@ -90,29 +97,15 @@ function addCallback(app: Hono<AppEnv>, options: AuthOptions): void {
   });
 }
 
-export function addAuth(app: Hono<AppEnv>, options: AuthOptions): void {
-  // Who is asking, for every request: a signed-in player, or nobody.
-  app.use("/api/*", async (c, next) => {
-    const token = readCookie(c, SESSION_COOKIE);
-    c.set("user", token === null ? null : await options.store.sessionUser(token));
-    await next();
-  });
-  addLogin(app, options);
-  addCallback(app, options);
-
-  app.post("/api/auth/logout", async (c) => {
-    const token = readCookie(c, SESSION_COOKIE);
-    if (token !== null) {
-      await options.store.deleteSession(token);
-    }
-    deleteCookie(c, SESSION_COOKIE, { path: "/" });
-    return c.body(null, 204);
-  });
-
+function addMe(app: Hono<AppEnv>, options: AuthOptions): void {
   app.get("/api/me", (c) => {
     const user = c.get("user");
     if (user === null) {
-      return c.json({ user: null, loginAvailable: options.oidc !== null });
+      return c.json({
+        user: null,
+        loginAvailable: options.oidc !== null,
+        analytics: options.analytics,
+      });
     }
     return c.json({
       user: {
@@ -122,7 +115,29 @@ export function addAuth(app: Hono<AppEnv>, options: AuthOptions): void {
         theme: user.theme,
       },
       loginAvailable: true,
+      analytics: options.analytics,
     });
+  });
+}
+
+export function addAuth(app: Hono<AppEnv>, options: AuthOptions): void {
+  // Who is asking, for every request: a signed-in player, or nobody.
+  app.use("/api/*", async (c, next) => {
+    const token = readCookie(c, SESSION_COOKIE);
+    c.set("user", token === null ? null : await options.store.sessionUser(token));
+    await next();
+  });
+  addLogin(app, options);
+  addCallback(app, options);
+  addMe(app, options);
+
+  app.post("/api/auth/logout", async (c) => {
+    const token = readCookie(c, SESSION_COOKIE);
+    if (token !== null) {
+      await options.store.deleteSession(token);
+    }
+    deleteCookie(c, SESSION_COOKIE, { path: "/" });
+    return c.body(null, 204);
   });
 
   // The look a signed-in player gets by default on any device.

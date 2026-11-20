@@ -48,6 +48,9 @@ if (oidc === null) {
   console.warn("Keycloak settings are missing, so nobody can sign in. The game still works.");
 }
 
+// Only production has a PostHog key, so previews and local runs count nothing.
+const posthogKey = readEnv("POSTHOG_KEY");
+
 const app = createApp({
   staticDir: readEnv("STATIC_DIR"),
   pingDatabase: async () => {
@@ -65,6 +68,10 @@ const app = createApp({
   appUrl: readEnv("APP_URL") ?? "http://localhost:4173",
   relayUrl: readEnv("OAUTH_RELAY_URL"),
   admins: parseAdmins(readEnv("ADMIN_USERS")),
+  analytics:
+    posthogKey === null
+      ? null
+      : { key: posthogKey, host: readEnv("POSTHOG_HOST") ?? "https://us.i.posthog.com" },
 });
 
 const quiet = readEnv("LOG_LEVEL") === "error";

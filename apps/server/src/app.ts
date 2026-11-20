@@ -6,7 +6,7 @@ import type { Judge } from "./jev.ts";
 import { RateLimit } from "./limit.ts";
 import type { Oidc } from "./oidc.ts";
 import { addAdmin } from "./routes/admin.ts";
-import { addAuth } from "./routes/auth.ts";
+import { type Analytics, addAuth } from "./routes/auth.ts";
 import { addGame, clientOf } from "./routes/game.ts";
 import { PRACTICE } from "./secret.ts";
 import { serveWebApp } from "./static.ts";
@@ -29,6 +29,8 @@ export interface AppOptions {
   readonly relayUrl?: string | null;
   /** Usernames or emails allowed into the admin pages. */
   readonly admins?: ReadonlySet<string>;
+  /** PostHog settings for counting page views, or null to count nothing. */
+  readonly analytics?: Analytics | null;
   /** Questions allowed per client per minute. */
   readonly questionsPerMinute?: number;
   readonly now?: () => Date;
@@ -87,6 +89,7 @@ export function createApp(options: AppOptions): Hono<AppEnv> {
     appUrl: options.appUrl ?? "http://localhost:4173",
     relayUrl: options.relayUrl ?? null,
     admins,
+    analytics: options.analytics ?? null,
   });
   addPractice(app, judge, limit);
   addGame(app, { store, judge, limit, now: options.now ?? (() => new Date()) });

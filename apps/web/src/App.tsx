@@ -6,6 +6,7 @@ import { AdminPage } from "./pages/Admin.tsx";
 import { ScoresPage } from "./pages/Scores.tsx";
 import { usePath } from "./router.tsx";
 import { fetchMe, fetchToday, type Me, type Today } from "./server.ts";
+import { countPageViews } from "./analytics.ts";
 import { rememberAccount } from "./theme.ts";
 
 function Hero({ title, subtitle }: { readonly title: React.ReactNode; readonly subtitle: string }) {
@@ -55,9 +56,10 @@ function useSession() {
     void fetchMe()
       .then((found) => {
         rememberAccount(found.user?.theme ?? null);
+        countPageViews(found.analytics);
         return found;
       })
-      .catch(() => ({ user: null, loginAvailable: false }))
+      .catch(() => ({ user: null, loginAvailable: false, analytics: null }))
       .then(setMe);
     void fetchToday(carriedGame())
       .catch(() => ({ day: "", puzzle: false, game: null }))

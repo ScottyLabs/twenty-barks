@@ -18,6 +18,19 @@ const VERDICTS: readonly Verdict[] = ["yes", "no", "sortof", "correct"];
 const verdictOf = (value: unknown): Verdict | null =>
   VERDICTS.find((verdict) => verdict === value) ?? null;
 
+/** Where to send page views; null outside production. */
+export interface Analytics {
+  readonly key: string;
+  readonly host: string;
+}
+
+function analyticsOf(body: unknown): Analytics | null {
+  const analytics = at(body, "analytics");
+  const key = str(at(analytics, "key"));
+  const host = str(at(analytics, "host"));
+  return key === null || host === null ? null : { key, host };
+}
+
 export interface Me {
   readonly user: {
     readonly name: string;
@@ -25,6 +38,7 @@ export interface Me {
     readonly theme: Theme;
   } | null;
   readonly loginAvailable: boolean;
+  readonly analytics: Analytics | null;
 }
 
 export interface DailyTurn {
@@ -126,6 +140,7 @@ export async function fetchMe(): Promise<Me> {
             theme: themeOf(at(user, "theme")),
           },
     loginAvailable: at(body, "loginAvailable") === true,
+    analytics: analyticsOf(body),
   };
 }
 

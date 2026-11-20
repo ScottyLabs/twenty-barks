@@ -164,3 +164,11 @@ await test("the standing is shown only once the game is over", async () => {
   assert.equal(tied.betterThan, 0);
   assert.equal(tied.score, 2);
 });
+
+await test("the page learns where to count views only when a PostHog key is set", async () => {
+  const analytics = { key: "phc_test", host: "https://us.i.posthog.com" };
+  const off = await json(await (await testApp()).app.request("/api/me"));
+  assert.equal(off.analytics, null);
+  const on = await json(await (await testApp({ analytics })).app.request("/api/me"));
+  assert.deepEqual(on.analytics, analytics);
+});
