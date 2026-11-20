@@ -8,38 +8,6 @@ import { usePath } from "./router.tsx";
 import { fetchMe, fetchToday, type Me, type Today } from "./server.ts";
 import { rememberAccount } from "./theme.ts";
 
-const STEPS = [
-  {
-    title: "Bark picks something",
-    body: "Every day, a place, course, food, or tradition from around campus.",
-  },
-  {
-    title: "You ask, he answers",
-    body: "Yes, no, or sort of. Twenty questions, one bone each.",
-  },
-  {
-    title: "Guess it, share it",
-    body: "Fewer questions is better. Sign in to keep a streak going.",
-  },
-] as const;
-
-function HowToPlay() {
-  return (
-    <section id="how" className="mx-auto w-full max-w-5xl px-4 sm:px-8">
-      <h2 className="eyebrow mb-4">How to play</h2>
-      <ol className="grid gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-3">
-        {STEPS.map((step, i) => (
-          <li key={step.title} className="bg-paper p-6">
-            <p className="mb-3 font-mono text-xs text-muted">0{i + 1}</p>
-            <h3 className="mb-1 text-lg font-bold">{step.title}</h3>
-            <p className="text-muted">{step.body}</p>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
-}
-
 function Hero({ title, subtitle }: { readonly title: React.ReactNode; readonly subtitle: string }) {
   return (
     <div className="space-y-4">
@@ -144,7 +112,6 @@ export function App() {
         >
           <Page path={path} me={me} today={today} />
         </div>
-        {path === "/" && <HowToPlay />}
       </main>
       <footer className="hairline-t">
         <p className="mx-auto max-w-5xl px-4 py-6 text-sm text-muted sm:px-8">
