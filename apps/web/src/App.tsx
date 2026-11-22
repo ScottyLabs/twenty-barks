@@ -21,6 +21,7 @@ function Home({ me, today }: { readonly me: Me | null; readonly today: Today | n
   const daily = today?.puzzle === true;
   return (
     <>
+      {/* The subtitle is the only how-to-play there is, so keep it saying what to do. */}
       <Hero
         title={
           <>
