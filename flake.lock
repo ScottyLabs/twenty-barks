@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "anti-slop": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791937113,
+        "narHash": "sha256-S+8TNTjmuwSBIuANG63a0eg6W72Bd9gZXueL8uyWOqE=",
+        "owner": "dmmulroy",
+        "repo": "anti-slop",
+        "rev": "13909c9e07590f5a85d93c62712259fe14a883f7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dmmulroy",
+        "repo": "anti-slop",
+        "type": "github"
+      }
+    },
     "collar": {
       "inputs": {
         "flake-parts": [
@@ -153,6 +169,38 @@
         "type": "github"
       }
     },
+    "nixpkgs-oxlint": {
+      "locked": {
+        "lastModified": 1794976841,
+        "narHash": "sha256-HW2d7/kp6IPQUh0XR05AOZSQzQ0swtAt7ZcONs/SQfM=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "e5fce2c8934b4f890746204316b6a379e9d37e54",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "e5fce2c8934b4f890746204316b6a379e9d37e54",
+        "type": "github"
+      }
+    },
+    "nixpkgs-tsrs": {
+      "locked": {
+        "lastModified": 1794980197,
+        "narHash": "sha256-H7/Ngy2RK1SHTDmZIXxxfD44Y+goo6Rfw4/52T7kDPs=",
+        "owner": "ap-1",
+        "repo": "nixpkgs",
+        "rev": "0c864f08ec7b010e8db86c09c3c3f918a73452ac",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ap-1",
+        "repo": "nixpkgs",
+        "rev": "0c864f08ec7b010e8db86c09c3c3f918a73452ac",
+        "type": "github"
+      }
+    },
     "pyproject-build-systems": {
       "inputs": {
         "nixpkgs": [
@@ -261,12 +309,15 @@
     },
     "scottylabs": {
       "inputs": {
+        "anti-slop": "anti-slop",
         "collar": "collar",
         "crane": "crane",
         "flake-parts": "flake-parts",
         "git-hooks": "git-hooks",
         "nixpkgs": "nixpkgs",
         "nixpkgs-garage": "nixpkgs-garage",
+        "nixpkgs-oxlint": "nixpkgs-oxlint",
+        "nixpkgs-tsrs": "nixpkgs-tsrs",
         "pyproject-build-systems": "pyproject-build-systems",
         "pyproject-nix": "pyproject-nix",
         "ricochet": "ricochet",
@@ -275,11 +326,11 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1794882727,
-        "narHash": "sha256-I1AQqj6m9FHG+X4mIo9wXBnC/K4kB5iOr+20yes2JNE=",
+        "lastModified": 1795125896,
+        "narHash": "sha256-omDCo/TVjFUv7euzPdOQRI2SNEu2QQgHPf4GSauKM5I=",
         "ref": "refs/heads/main",
-        "rev": "02f99730fccb31d8bf3cd83ee9c0e69451c6dd3a",
-        "revCount": 471,
+        "rev": "94c75ecd2d7ba6b607e49854f6f143774e547a32",
+        "revCount": 484,
         "type": "git",
         "url": "https://git.cmu.dev/ScottyLabs/kennel"
       },
