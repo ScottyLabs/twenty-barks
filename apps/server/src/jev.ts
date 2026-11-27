@@ -24,8 +24,9 @@ const QUESTIONS = {
       yes: "True of the secret thing.",
       no: "False of the secret thing.",
       sortof: "Partly true, true only sometimes, or depends on how you look at it.",
+      // Keep this narrow. "Or impossible to tell" here made Jev give up on broad questions like "is it related to cfa", which have a clear answer.
       unanswerable:
-        "Not a yes-or-no question about the secret thing, or impossible to tell from the facts and common knowledge.",
+        'Not a yes-or-no question about the secret thing: an open question such as "what is it?" or "how old is it?", an either-or question, or a question about something other than the secret thing, such as the player or the game. A broad question, such as whether it is related to, connected with, or has to do with something, is still a yes-or-no question: answer it by whether there is a clear, real connection.',
     },
   },
   guessed: {
