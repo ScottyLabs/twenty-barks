@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { GROUNDED, leapAt, press, settle, type Leap, type Leaps } from "../bark/jump.ts";
 import { frameAt, type Frame, type Mood } from "../bark/moods.ts";
@@ -80,9 +80,11 @@ function paint(parts: Parts, frame: Frame, spin: number): void {
 
 /**
  * Runs the reaction for `mood` until the component unmounts. The parent gives each answer a new `key`, so a fresh reaction always starts from the beginning.
+ *
+ * The first frame is painted before the browser paints. Waiting for the next animation frame left a freshly mounted Bark with empty paths for a frame, so he blinked out on every answer.
  */
 function useBarkAnimation(parts: Parts, mood: Mood, leaps: RefObject<Leaps>): void {
-  useEffect(() => {
+  useLayoutEffect(() => {
     const started = performance.now();
     const still = globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const frame = { request: 0 };
@@ -95,7 +97,7 @@ function useBarkAnimation(parts: Parts, mood: Mood, leaps: RefObject<Leaps>): vo
         frame.request = requestAnimationFrame(tick);
       }
     };
-    frame.request = requestAnimationFrame(tick);
+    tick(started);
     return () => {
       cancelAnimationFrame(frame.request);
     };

@@ -19,7 +19,10 @@ function Hero({ title, subtitle }: { readonly title: React.ReactNode; readonly s
 }
 
 function Home({ me, today }: { readonly me: Me | null; readonly today: Today | null }) {
+  // Wait for both: keying the round on a half-loaded session remounted it a moment later, which flickered.
+  const loading = me === null || today === null;
   const daily = today?.puzzle === true;
+  const signedIn = me?.user !== null && me?.user !== undefined;
   return (
     <>
       {/* The subtitle is the only how-to-play there is, so keep it saying what to do. */}
@@ -31,16 +34,16 @@ function Home({ me, today }: { readonly me: Me | null; readonly today: Today | n
         }
         subtitle="Bark is thinking of something at CMU. You get twenty yes-or-no questions to sniff it out."
       />
-      {today === null && <p className="text-muted">Waking Bark up...</p>}
-      {today !== null && daily && (
+      {loading && <p className="text-muted">Waking Bark up...</p>}
+      {!loading && daily && (
         <DailyRound
-          key={`${today.game?.id ?? "new"}-${String(me?.user !== null)}`}
+          key={`${today.game?.id ?? "new"}-${String(signedIn)}`}
           day={today.day}
           initial={today.game}
-          signedIn={me?.user !== null && me !== null}
+          signedIn={signedIn}
         />
       )}
-      {today !== null && !daily && (
+      {!loading && !daily && (
         <>
           <p className="text-muted">No puzzle today yet. Warm up with a practice round!</p>
           <PracticeRound />
