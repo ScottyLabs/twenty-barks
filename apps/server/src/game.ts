@@ -63,7 +63,10 @@ export async function play(
     return { game, reply, counted: false };
   }
   const secret = { name: puzzle.name, aliases: puzzle.aliases, facts: puzzle.facts };
-  const reply = decide(secret, question, await judge(secret, question));
+  const earlier = game.turns.flatMap((turn) =>
+    turn.verdict === "correct" ? [] : [{ question: turn.question, answer: turn.verdict }],
+  );
+  const reply = decide(secret, question, await judge(secret, question, earlier));
   if (reply.verdict === "unsure") {
     return { game, reply, counted: false };
   }

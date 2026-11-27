@@ -64,6 +64,22 @@ await test("the judge sends the facts and question to Jev under /typesafe", asyn
   assert.match(JSON.stringify(sent[0]?.body), /"player_question":"is it red"/u);
 });
 
+await test("the judge sends earlier answers only once there are some", async () => {
+  const bodies: string[] = [];
+  const fakeFetch: typeof fetch = (_input, init) => {
+    bodies.push(typeof init?.body === "string" ? init.body : "");
+    return Promise.resolve(Response.json({ answers: { answer: { probabilities: { yes: 1 } } } }));
+  };
+  const judge = jevJudge("https://gateway.test", "k", fakeFetch);
+  await judge(PRACTICE, "is it red");
+  await judge(PRACTICE, "can you sit on it", [{ question: "is it furniture", answer: "no" }]);
+  assert.doesNotMatch(bodies[0] ?? "", /"earlier_answers":/u);
+  assert.match(
+    bodies[1] ?? "",
+    /"earlier_answers":\[\{"question":"is it furniture","answer":"no"\}\]/u,
+  );
+});
+
 await test("the judge tries once more after a dropped connection or a busy gateway", async () => {
   let calls = 0;
   const flaky: typeof fetch = () => {

@@ -9,7 +9,18 @@ export interface Judgment {
   readonly guessed: number;
 }
 
-export type Judge = (secret: Secret, question: string) => Promise<Judgment>;
+/** A question this player already asked, and how Bark answered it. */
+export interface Earlier {
+  readonly question: string;
+  readonly answer: "yes" | "no" | "sortof";
+}
+
+/** Judges `question`, staying consistent with what this player was `earlier` told. */
+export type Judge = (
+  secret: Secret,
+  question: string,
+  earlier?: readonly Earlier[],
+) => Promise<Judgment>;
 
 /** Pinned, so the thresholds in ask.ts stay tuned to the model that answers. */
 const MODEL = "jev-1.14.0";
@@ -19,7 +30,7 @@ const QUESTIONS = {
   answer: {
     type: "choice",
     instructions:
-      "A player is trying to guess the secret thing in a game of twenty questions. Judge the player_question about the secret thing, using its facts and common knowledge about it. How should it be truthfully answered?",
+      "A player is trying to guess the secret thing in a game of twenty questions. Judge the player_question about the secret thing, using its facts and common knowledge about it. If there are earlier_answers, this player was already given them: stay consistent with them, so a question that means the same as an earlier one, or follows from it, gets the matching answer. How should it be truthfully answered?",
     criteria: {
       yes: "True of the secret thing.",
       no: "False of the secret thing.",
@@ -65,20 +76,16 @@ const pause = (ms: number): Promise<void> =>
  */
 export function jevJudge(baseUrl: string, apiKey: string, fetchFn: typeof fetch = fetch): Judge {
   const url = `${baseUrl.replace(/\/+$/u, "")}/typesafe/v1/systemone`;
-  const send = (secret: Secret, question: string): Promise<Response> =>
+  const send = (state: object): Promise<Response> =>
     fetchFn(url, {
       method: "POST",
       headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL,
-        state: { secret: { name: secret.name, facts: secret.facts }, player_question: question },
-        questions: QUESTIONS,
-      }),
+      body: JSON.stringify({ model: MODEL, state, questions: QUESTIONS }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
-  const sendWithRetry = async (secret: Secret, question: string): Promise<Response> => {
+  const sendWithRetry = async (state: object): Promise<Response> => {
     try {
-      const first = await send(secret, question);
+      const first = await send(state);
       if (!RETRY_STATUSES.has(first.status)) {
         return first;
       }
@@ -86,10 +93,14 @@ export function jevJudge(baseUrl: string, apiKey: string, fetchFn: typeof fetch 
       // A dropped connection; try once more below.
     }
     await pause(RETRY_DELAY_MS);
-    return send(secret, question);
+    return send(state);
   };
-  return async (secret, question) => {
-    const res = await sendWithRetry(secret, question);
+  return async (secret, question, earlier = []) => {
+    const res = await sendWithRetry({
+      secret: { name: secret.name, facts: secret.facts },
+      player_question: question,
+      ...(earlier.length > 0 && { earlier_answers: earlier }),
+    });
     if (!res.ok) {
       throw new Error(`Jev answered ${res.status}`);
     }

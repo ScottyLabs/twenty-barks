@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Judge } from "./jev.ts";
-import { campusDay, standingOf, statsOf } from "./game.ts";
+import { campusDay, play, standingOf, statsOf } from "./game.ts";
 import { at, fakeOidc, odds, signIn, testApp } from "./testing.ts";
 
 const FENCE = {
@@ -41,6 +41,27 @@ async function withPuzzle(options: Parameters<typeof testApp>[0] = {}) {
   );
   return made;
 }
+
+await test("Bark is reminded of what he already told this player", async () => {
+  const heard: unknown[] = [];
+  const remembering: Judge = (_secret, _question, earlier) => {
+    heard.push(earlier);
+    return Promise.resolve(odds({ yes: 1 }));
+  };
+  const puzzle = { day: "2026-11-18", ...FENCE };
+  const fresh = {
+    id: "g",
+    day: puzzle.day,
+    userId: null,
+    turns: [],
+    won: false,
+    finished: false,
+    startedMs: 0,
+  };
+  const first = await play(fresh, puzzle, "is it outside", remembering);
+  await play(first.game, puzzle, "is it outdoors", remembering);
+  assert.deepEqual(heard, [[], [{ question: "is it outside", answer: "yes" }]]);
+});
 
 await test("the day turns over at midnight on campus, not in UTC", () => {
   assert.equal(campusDay(new Date("2026-11-19T03:00:00Z")), "2026-11-18");
