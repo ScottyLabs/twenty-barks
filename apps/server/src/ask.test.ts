@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { createApp } from "./app.ts";
 import { Store } from "./store.ts";
 import { memoryDb } from "./testing.ts";
-import { decide } from "./ask.ts";
+import { decide, editDistance } from "./ask.ts";
 import { jevJudge, type Judge, type Judgment } from "./jev.ts";
 import { PRACTICE } from "./secret.ts";
 
@@ -38,6 +38,27 @@ await test("a win needs the question to name the answer and Jev to read it as a 
     "correct",
   );
   assert.notEqual(decide(PRACTICE, "is it fenced in?", guess).verdict, "correct");
+});
+
+await test("a misspelled guess still wins, but a different word does not", () => {
+  const guess = odds({ yes: 1, guessed: 0.95 });
+  for (const typo of ["is it the fense", "is it the fecne", "is it the fences?"]) {
+    assert.equal(decide(PRACTICE, typo, guess).verdict, "correct", typo);
+  }
+  const mall = { name: "the Mall", aliases: ["mall"], facts: [] };
+  assert.equal(decide(mall, "is it the maal", guess).verdict, "correct");
+  assert.notEqual(decide(mall, "is it a hall", odds({ no: 1, guessed: 0.08 })).verdict, "correct");
+  const hunt = { name: "Hunt Library", aliases: ["hunt library"], facts: [] };
+  assert.equal(decide(hunt, "is it hnt libary", guess).verdict, "correct");
+  assert.equal(decide(hunt, "is it huntt library", guess).verdict, "correct");
+  assert.notEqual(decide(hunt, "is it a library", guess).verdict, "correct");
+});
+
+await test("edit distance counts swapped letters as one edit and gives up early", () => {
+  assert.equal(editDistance("fence", "fecne", 2), 1);
+  assert.equal(editDistance("fence", "fense", 2), 1);
+  assert.equal(editDistance("libary", "library", 2), 1);
+  assert.equal(editDistance("fence", "carnival", 1), 2);
 });
 
 await test("the same question always gets the same line", () => {

@@ -39,9 +39,84 @@ function lineFor(verdict: "yes" | "no" | "sortof", question: string): string {
   return lines[hash % lines.length] ?? lines[0] ?? "";
 }
 
+/** Edits (insertions, deletions, substitutions, or swaps of neighbours) between two words, stopping early once past `most`. */
+export function editDistance(a: string, b: string, most: number): number {
+  if (Math.abs(a.length - b.length) > most) {
+    return most + 1;
+  }
+  let before: number[] = [];
+  let previous = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const current = [i];
+    for (let j = 1; j <= b.length; j++) {
+      const swap = a[i - 1] === b[j - 1] ? 0 : 1;
+      let best = Math.min(
+        (previous[j] ?? 0) + 1,
+        (current[j - 1] ?? 0) + 1,
+        (previous[j - 1] ?? 0) + swap,
+      );
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        best = Math.min(best, (before[j - 2] ?? 0) + 1);
+      }
+      current.push(best);
+    }
+    if (Math.min(...current) > most) {
+      return most + 1;
+    }
+    before = previous;
+    previous = current;
+  }
+  return previous[b.length] ?? most + 1;
+}
+
+/** Typos forgiven in a word this long: none for short words, where one letter makes another word. */
+function slack(word: string): number {
+  if (word.length >= 8) {
+    return 2;
+  }
+  return word.length >= 4 ? 1 : 0;
+}
+
+/** A plural's singular, roughly: "buggies" to "buggy", "fences" to "fence". */
+function singular(word: string): string {
+  if (word.length > 4 && word.endsWith("ies")) {
+    return `${word.slice(0, -3)}y`;
+  }
+  return word.length > 3 && word.endsWith("s") && !word.endsWith("ss") ? word.slice(0, -1) : word;
+}
+
+/** A longer word built on `part`, like "fenced" from "fence", is a different word. A held-down last letter, like "huntt", is still a typo. */
+function buildsOn(form: string, part: string): boolean {
+  const extra = form.slice(part.length);
+  return form.startsWith(part) && extra !== (part.at(-1) ?? "").repeat(extra.length);
+}
+
+/** Whether `word` is `part`, allowing a typo or two and a plural. */
+function close(word: string, part: string): boolean {
+  const most = slack(part);
+  return [word, singular(word)].some(
+    (form) => !buildsOn(form, part) && editDistance(form, part, most) <= most,
+  );
+}
+
+/** Whether `words` contain `alias`, allowing a typo or two in each of its words. */
+function near(words: readonly string[], alias: string): boolean {
+  const parts = alias.split(" ");
+  return words.some((_, start) =>
+    parts.every((part, k) => {
+      const word = words[start + k];
+      return word !== undefined && close(word, part);
+    }),
+  );
+}
+
+/** Whether the question names the answer, typos allowed. Jev must still read it as a guess at the answer itself, so "is it a hall?" does not win when the answer is the Mall. */
 function mentions(secret: Secret, question: string): boolean {
-  const words = ` ${normalize(question).replaceAll(/[^a-z0-9]+/gu, " ")} `;
-  return secret.aliases.some((alias) => words.includes(` ${alias} `));
+  const words = normalize(question)
+    .replaceAll(/[^a-z0-9]+/gu, " ")
+    .split(" ")
+    .filter((word) => word !== "");
+  return secret.aliases.some((alias) => near(words, alias));
 }
 
 /**

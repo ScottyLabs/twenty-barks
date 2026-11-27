@@ -35,6 +35,10 @@ export function AskForm({
           value={text}
           maxLength={maxLength}
           autoComplete="off"
+          // Let the browser and phone keyboards fix typos as players type; the server forgives the rest.
+          spellCheck
+          autoCorrect="on"
+          autoCapitalize="sentences"
           placeholder="Ask a yes-or-no question, or guess..."
           onChange={(event) => {
             setText(event.target.value);

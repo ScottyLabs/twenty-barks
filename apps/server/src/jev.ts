@@ -31,7 +31,7 @@ const QUESTIONS = {
   guessed: {
     type: "noul",
     instructions:
-      "Is the player making a final guess that the secret thing IS some specific thing, and is that guess the secret thing itself (not just something near it, part of it, or related to it)?",
+      "Is the player making a final guess that the secret thing IS some specific thing, and is that guess the secret thing itself (not just something near it, part of it, or related to it)? Ignore spelling mistakes: a misspelled name still names the thing it was meant to.",
   },
 } as const;
 
