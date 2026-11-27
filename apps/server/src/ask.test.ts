@@ -4,6 +4,7 @@ import { createApp } from "./app.ts";
 import { Store } from "./store.ts";
 import { memoryDb } from "./testing.ts";
 import { decide } from "./ask.ts";
+import { CAMPUS, campusNotes } from "./campus.ts";
 import { jevJudge, type Judge, type Judgment } from "./jev.ts";
 import { PRACTICE } from "./secret.ts";
 
@@ -138,4 +139,34 @@ await test("bad questions, a missing gateway, a failing judge, and floods are re
   assert.equal((await ask(fine, { question: "a?" })).status, 200);
   assert.equal((await ask(fine, { question: "b?" })).status, 200);
   assert.equal((await ask(fine, { question: "c?" })).status, 429);
+});
+
+const BARE = { name: "the thing", facts: ["It is round."] };
+const about = (notes: readonly string[], start: string): boolean =>
+  notes.some((note) => note.startsWith(start));
+
+await test("a question brings in the notes it names, abbreviations included", () => {
+  assert.ok(about(campusNotes(BARE, "is it related to cfa"), "CFA: the College of Fine Arts"));
+  assert.ok(about(campusNotes(BARE, "Is it on the Mall?"), "The Mall:"));
+  assert.ok(about(campusNotes(BARE, "is it close to cohon"), "The Cohon University Center"));
+  assert.deepEqual(campusNotes(BARE, "is it round"), []);
+});
+
+await test("the secret's own facts bring in the landmarks they mention", () => {
+  const notes = campusNotes(PRACTICE, "is it on the mall");
+  assert.ok(about(notes, "The Mall:"));
+  assert.ok(about(notes, "The Cut:"));
+});
+
+await test("terms match whole words only", () => {
+  assert.equal(about(campusNotes(BARE, "is it cute"), "The Cut:"), false);
+  assert.equal(about(campusNotes(BARE, "is it a smaller thing"), "The Mall:"), false);
+});
+
+await test("every term is lowercase, so it can match", () => {
+  for (const entry of CAMPUS) {
+    for (const term of entry.terms) {
+      assert.equal(term, term.toLowerCase());
+    }
+  }
 });

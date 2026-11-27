@@ -29,7 +29,7 @@ Return only a JSON object, with no other text:
 
 - name: the answer as players should see it when the game ends, e.g. "the Fence".
 - aliases: 1 to 4 lowercase words or short phrases; a winning guess must contain one of them. Prefer distinctive words ("fence", "buggy"), not generic ones ("the").
-- facts: 8 to 12 short, plain sentences. Cover what kind of thing it is (place, building, food, event, tradition, person, object), where it is, when it happens or is open, its size, what it is made of, who uses it, how old it is, and what it is NOT (for example: not a building, not a food, not a course). Only state things you are confident are true about CMU.
+- facts: 8 to 12 short, plain sentences. Cover what kind of thing it is (place, building, food, event, tradition, person, object), where it is (next to which landmarks, such as the Cut, the Mall, the Cohon University Center, or Forbes Avenue, and which well-known places it is not on or near), when it happens or is open, its size, what it is made of, who uses it, how old it is, and what it is NOT (for example: not a building, not a food, not a course). Only state things you are confident are true about CMU.
 - check: copy, word for word, any facts you included but are not fully sure of (dates, numbers, names, anything that may have changed), so a person can verify them.
 - questions: 12 yes-or-no questions a player might ask, including a few tricky near-misses, such as guessing something related but different.
 

@@ -1,3 +1,4 @@
+import { campusNotes } from "./campus.ts";
 import type { Secret } from "./secret.ts";
 
 /** Jev's read of one question: how likely each answer is, and how likely it is a guess at the secret itself. */
@@ -30,7 +31,7 @@ const QUESTIONS = {
   answer: {
     type: "choice",
     instructions:
-      "A player is trying to guess the secret thing in a game of twenty questions. Judge the player_question about the secret thing, using its facts and common knowledge about it. If there are earlier_answers, this player was already given them: stay consistent with them, so a question that means the same as an earlier one, or follows from it, gets the matching answer. How should it be truthfully answered?",
+      "A player is trying to guess the secret thing in a game of twenty questions. Judge the player_question about the secret thing, using its facts, the campus_notes about Carnegie Mellon, and common knowledge. If there are earlier_answers, this player was already given them: stay consistent with them, so a question that means the same as an earlier one, or follows from it, gets the matching answer. How should it be truthfully answered?",
     criteria: {
       yes: "True of the secret thing.",
       no: "False of the secret thing.",
@@ -99,6 +100,7 @@ export function jevJudge(baseUrl: string, apiKey: string, fetchFn: typeof fetch 
     const res = await sendWithRetry({
       secret: { name: secret.name, facts: secret.facts },
       player_question: question,
+      campus_notes: campusNotes(secret, question),
       ...(earlier.length > 0 && { earlier_answers: earlier }),
     });
     if (!res.ok) {
