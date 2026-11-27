@@ -29,6 +29,18 @@ await test("a muddled or open question is unsure, which costs nothing", () => {
   assert.equal(decide(PRACTICE, "what's up dog", odds({ unanswerable: 0.92 })).verdict, "unsure");
 });
 
+await test("an answerable question with spread odds gets sort of, or an honest not sure", () => {
+  const partly = odds({ no: 0.44, sortof: 0.41, yes: 0.14, unanswerable: 0.01 });
+  assert.equal(decide(PRACTICE, "is it related to cfa", partly).verdict, "sortof");
+  const torn = decide(
+    PRACTICE,
+    "is it next to the mall",
+    odds({ yes: 0.45, no: 0.3, sortof: 0.19 }),
+  );
+  assert.equal(torn.verdict, "unsure");
+  assert.doesNotMatch(torn.reply, /yes or no/u);
+});
+
 await test("a win needs the question to name the answer and Jev to read it as a guess", () => {
   const guess = odds({ yes: 1, guessed: 0.96 });
   assert.equal(decide(PRACTICE, "Is it the Fence?", guess).verdict, "correct");
